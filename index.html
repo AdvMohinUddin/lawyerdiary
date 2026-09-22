@@ -1,0 +1,2379 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#eef2ee">
+<title>Lawyer Diary — Case Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Baloo+Da+2:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f3ec; --panel:#ffffff; --panel2:#eef2ee; --line:#e1e6de;
+  --teal:#128f83; --teal-dark:#0d7268; --teal-soft:#e2f2ef;
+  --text:#26332f; --muted:#6d7d76;
+  --amber:#b9791f; --amber-bg:#fbeedc;
+  --red:#c1493c; --red-bg:#fbe6e3;
+  --blue:#3f7fb0; --blue-bg:#e6eef6;
+  --purple:#8266c9; --purple-bg:#efeaf9;
+  --grey-bg:#eef1ed; --radius:12px;
+}
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; background:var(--bg); color:var(--text);
+  font-family:'Hind Siliguri', sans-serif; -webkit-font-smoothing:antialiased; line-height:1.55; }
+.headline{ font-family:'Baloo Da 2','Hind Siliguri',sans-serif; }
+button{ font-family:inherit; cursor:pointer; }
+input,select,textarea{ font-family:inherit; }
+a{ color:var(--teal); }
+
+.app{ max-width: 760px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; }
+
+/* Topbar */
+.topbar{ display:flex; flex-direction:column; gap:10px;
+  padding:12px 16px; background:var(--panel2); border-bottom:1px solid var(--line);
+  position:sticky; top:0; z-index:30; }
+.topbar .toprow{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.topbar .titlewrap{ display:flex; align-items:center; gap:10px; min-width:0; flex:1; }
+.brandbtn{ background:none; border:none; padding:0; margin:0; text-align:left; color:inherit;
+  cursor:pointer; min-width:0; display:block; font:inherit; }
+.iconbtn{ background:var(--teal-soft); border:none; color:var(--text); width:38px; height:38px; flex:none;
+  border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+.topbar h1{ margin:0; font-size:18px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.topbar .sub{ font-size:11px; color:var(--muted); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.topsearch{ width:100%; box-sizing:border-box; display:flex; align-items:center; background:var(--panel); border:1px solid var(--line);
+  border-radius:10px; padding:0 10px; gap:6px; }
+.topsearch input{ flex:1; min-width:0; background:none; border:none; color:var(--text); padding:9px 0; font-size:13.5px; outline:none; }
+.topsearch .k{ color:var(--muted); }
+
+/* Drawer */
+.drawer-overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.5); display:none; z-index:60; }
+.drawer-overlay.open{ display:block; }
+.drawer{ position:fixed; top:0; left:0; bottom:0; width:280px; background:var(--panel2); overflow-y:auto;
+  border-right:1px solid var(--line); padding:18px 14px; transform:translateX(-100%);
+  transition:transform .2s ease; z-index:61; }
+.drawer-overlay.open .drawer{ transform:translateX(0); }
+.drawer h2{ font-size:12.5px; color:var(--muted); margin:18px 0 8px; font-weight:700; letter-spacing:.3px; text-transform:uppercase; }
+.drawer h2:first-child{ margin-top:2px; }
+.drawer .item{ display:flex; align-items:center; gap:10px; padding:11px 10px; border-radius:9px;
+  color:var(--text); background:none; border:none; width:100%; text-align:left; font-size:14.5px; }
+.drawer .item.active{ background:var(--teal-soft); color:var(--teal); }
+.drawer .item:hover{ background:var(--teal-soft); }
+.drawer .orgbox{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:6px; }
+.drawer .orgbox .oname{ font-weight:700; font-size:14px; }
+.drawer .orgbox .orole{ font-size:11.5px; color:var(--muted); margin-top:2px; }
+
+/* Content */
+.content{ flex:1; padding:16px 16px 90px; min-width:0; }
+.view{ display:none; }
+.view.active{ display:block; }
+.pagehead{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:8px; }
+.pagehead h2{ margin:0; font-size:18px; }
+.pagehead .cnt{ font-size:12.5px; color:var(--muted); }
+
+/* Stat cards */
+.statgrid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:10px; }
+.statgrid2{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:10px; }
+.statcard{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:14px 10px; text-align:center; cursor:pointer; transition:background .15s,border-color .15s; border-top:3px solid var(--line); }
+.statcard:active{ opacity:.8; }
+.statcard:hover{ border-color:var(--teal); background:var(--teal-soft); }
+.statcard .num{ font-size:23px; font-weight:700; }
+.statcard .lbl{ font-size:11.5px; color:var(--muted); margin-top:2px; }
+.statcard.pending{ border-top-color:var(--amber); } .statcard.pending .num{ color:var(--amber); }
+.statcard.tomorrow{ border-top-color:var(--teal); }
+.statcard.disposedcard{ border-top-color:var(--muted); }
+.statcard.priority{ border-top-color:var(--red); } .statcard.priority .num{ color:var(--red); }
+.statcard.money{ border-top-color:var(--blue); } .statcard.money .num{ color:var(--blue); font-size:18px;}
+
+.section-title{ font-size:14px; color:var(--muted); margin:18px 0 8px; font-weight:700; }
+.section-title:first-child{ margin-top:0; }
+
+.quickgrid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:6px; }
+.qbtn{ background:var(--teal-dark); color:#fff; border:none; padding:13px 12px; border-radius:var(--radius);
+  font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px; justify-content:center; }
+.qbtn.alt{ background:var(--panel); border:1px solid var(--line); color:var(--text); }
+
+/* Calendar */
+.cal{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px; }
+.cal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:8px; }
+.cal-head button{ background:var(--teal-soft); border:none; color:var(--text); font-size:16px; padding:6px 12px; border-radius:8px; }
+.cal-head .label{ font-weight:700; }
+.cal-tabs{ display:flex; gap:6px; margin-bottom:10px; }
+.cal-tabs button{ flex:1; background:var(--teal-soft); border:none; color:var(--muted); padding:7px; border-radius:8px; font-size:12.5px; }
+.cal-tabs button.active{ background:var(--teal); color:#fff; }
+.cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; text-align:center; }
+.cal-grid .dow{ font-size:11px; color:var(--muted); padding-bottom:4px; }
+.cal-cell{ position:relative; padding:8px 0; border-radius:8px; font-size:13.5px; }
+.cal-cell.today{ background:var(--teal-soft); font-weight:700; }
+.cal-cell.has-cases::after{ content:attr(data-count); position:absolute; top:1px; right:6px;
+  font-size:9px; background:var(--teal); color:#fff; border-radius:8px; padding:0 4px; }
+.cal-cell.overdue::after{ background:var(--red); }
+.cal-cell.muted{ color:#3f5254; }
+.cal-cell.clickable{ cursor:pointer; }
+.cal-cell.clickable:hover{ background:var(--teal-soft); }
+.daypanel{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px; margin-top:12px; }
+.daypanel h3{ margin:0 0 8px; font-size:14.5px; }
+
+/* Toolbar / filters */
+.toolbar{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center; }
+.toolbar input[type=text], .toolbar input[type=date], .toolbar select{ flex:1; min-width:120px; padding:9px 11px;
+  background:var(--panel); border:1px solid var(--line); border-radius:9px; color:var(--text); font-size:14px; }
+.pillrow{ display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
+.pill{ background:var(--panel); border:1px solid var(--line); color:var(--muted); padding:7px 14px;
+  border-radius:20px; font-size:13px; }
+.pill.active{ background:var(--teal); color:#fff; border-color:var(--teal); }
+.iconlink{ background:none; border:none; color:var(--teal); font-size:13.5px; font-weight:600; }
+
+/* Generic cards */
+.card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:13px 14px; margin-bottom:9px; cursor:pointer; }
+.card:hover{ border-color:var(--teal); }
+.card .top{ display:flex; justify-content:space-between; gap:8px; margin-bottom:5px; align-items:flex-start; }
+.card .casenum{ font-weight:700; font-size:14.5px; }
+.card .datebadge{ font-size:12px; color:var(--muted); white-space:nowrap; }
+.card .court{ font-size:12.5px; color:var(--teal); margin-bottom:3px; }
+.card .parties{ font-size:13.5px; color:var(--text); margin-bottom:4px; }
+.card .order{ font-size:12.5px; color:var(--muted); }
+.card .metarow{ display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+.datehead{ font-size:12.5px; color:var(--muted); margin:14px 0 6px; font-weight:700; }
+.datehead:first-child{ margin-top:0; }
+
+.badge{ display:inline-block; padding:2px 9px; border-radius:10px; font-size:11px; font-weight:600; white-space:nowrap; }
+.badge.amber{ background:var(--amber-bg); color:var(--amber); }
+.badge.grey{ background:var(--grey-bg); color:var(--muted); }
+.badge.red{ background:var(--red-bg); color:var(--red); }
+.badge.teal{ background:var(--teal-soft); color:var(--teal); }
+.badge.blue{ background:var(--blue-bg); color:var(--blue); }
+.badge.purple{ background:var(--purple-bg); color:var(--purple); }
+
+.empty{ text-align:center; color:var(--muted); padding:36px 16px; border:1px dashed var(--line);
+  border-radius:var(--radius); font-size:14px; }
+
+/* Profile / detail */
+.profilecard{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:16px; margin-bottom:14px; }
+.profilecard h2{ margin:0 0 10px; font-size:18px; }
+.profilecard .actionsrow{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+.proprow{ display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--line);
+  font-size:13.5px; gap:10px; }
+.proprow:last-child{ border-bottom:none; }
+.proprow .k{ color:var(--muted); white-space:nowrap; }
+.proprow .v{ text-align:right; max-width:65%; }
+
+.tabsrow{ display:flex; gap:4px; overflow-x:auto; margin-bottom:12px; border-bottom:1px solid var(--line); }
+.tabsrow button{ background:none; border:none; color:var(--muted); padding:9px 12px; font-size:13px;
+  white-space:nowrap; border-bottom:2px solid transparent; font-weight:600; }
+.tabsrow button.active{ color:var(--teal); border-bottom-color:var(--teal); }
+.tabpane{ display:none; } .tabpane.active{ display:block; }
+
+.histitem{ background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--teal);
+  border-radius:10px; padding:12px 14px; margin-bottom:9px; }
+.histitem.overdue{ border-left-color:var(--red); }
+.histitem .hd{ display:flex; justify-content:space-between; margin-bottom:4px; gap:8px; }
+.histitem .hdate{ font-weight:700; font-size:14px; }
+.histitem .horder{ font-size:12px; color:var(--muted); }
+.histitem .hshort{ font-size:13.5px; margin-bottom:3px; }
+.histitem .hdetail{ font-size:13px; color:var(--muted); }
+.histitem .hnext{ font-size:12.5px; color:var(--teal); margin-top:4px; }
+
+/* Lists (clients/lawyers/tasks/docs) */
+.listrow{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:12px 14px; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center; gap:10px; cursor:pointer; }
+.listrow:hover{ border-color:var(--teal); }
+.listrow .name{ font-weight:600; font-size:14.5px; }
+.listrow .role{ font-size:12px; color:var(--muted); }
+.listrow .phone{ font-size:13px; color:var(--teal); font-weight:600; white-space:nowrap; }
+.listrow .right{ text-align:right; flex:none; }
+
+.taskrow{ display:flex; align-items:flex-start; gap:10px; }
+.taskrow .chk{ width:22px; height:22px; border-radius:6px; border:2px solid var(--teal); flex:none; margin-top:1px;
+  display:flex; align-items:center; justify-content:center; font-size:13px; color:transparent; }
+.taskrow .chk.done{ background:var(--teal); color:#fff; }
+.taskrow .body{ flex:1; }
+.taskrow .ttitle{ font-weight:600; font-size:14px; }
+.taskrow .ttitle.done{ text-decoration:line-through; color:var(--muted); }
+.taskrow .tmeta{ font-size:12px; color:var(--muted); margin-top:2px; }
+
+.docrow .dname{ font-weight:600; font-size:14px; }
+.docrow .dmeta{ font-size:12px; color:var(--muted); }
+
+/* Finance */
+.financetable{ width:100%; border-collapse:collapse; font-size:13px; }
+.financetable th{ text-align:right; color:var(--muted); font-weight:600; padding:8px 6px; border-bottom:1px solid var(--line); font-size:12px; }
+.financetable th:first-child, .financetable td:first-child{ text-align:right; }
+.financetable td{ padding:9px 6px; border-bottom:1px solid var(--line); text-align:center; }
+.financetable tr:hover{ background:var(--teal-soft); cursor:pointer; }
+.paycard{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:8px;
+  display:flex; justify-content:space-between; font-size:13px; }
+.paycard .amt{ font-weight:700; }
+.paycard .amt.expense{ color:var(--red); }
+.paycard .amt.payment{ color:var(--teal); }
+
+/* Reports */
+.reportbtn{ width:100%; text-align:right; background:var(--panel); border:1px solid var(--line); color:var(--text);
+  padding:14px; border-radius:var(--radius); margin-bottom:9px; font-size:14px; font-weight:600; display:flex;
+  justify-content:space-between; align-items:center; }
+.reportbtn:hover{ border-color:var(--teal); }
+.reportbtn .arrow{ color:var(--muted); }
+#reportOutputWrap{ margin-top:16px; }
+.reportactions{ display:flex; gap:8px; margin-bottom:12px; }
+
+/* Court builder */
+.courtbuilder{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:14px; margin-bottom:16px; }
+.courtbuilder .field:last-child{ margin-bottom:0; }
+.helptext{ font-size:12px; color:var(--muted); margin:-4px 0 10px; }
+.chiprow{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+.chip{ background:var(--panel); border:1px solid var(--line); padding:8px 13px; border-radius:20px;
+  font-size:13.5px; display:flex; align-items:center; gap:8px; }
+.chip button{ background:none; border:none; color:var(--red); font-size:14px; }
+
+/* Bottom nav */
+.bottomnav{ position:fixed; left:0; right:0; bottom:0; max-width:760px; margin:0 auto;
+  background:var(--panel2); border-top:1px solid var(--line); display:flex; z-index:20; }
+.navbtn{ flex:1; background:none; border:none; color:var(--muted); padding:10px 4px 9px;
+  display:flex; flex-direction:column; align-items:center; gap:3px; font-size:11px; }
+.navbtn.active{ color:var(--teal); }
+.navbtn .ic{ font-size:18px; line-height:1; }
+.fab{ position:fixed; right:calc(50% - 360px); bottom:78px; background:var(--teal); color:#fff;
+  border:none; width:52px; height:52px; border-radius:50%; font-size:26px; box-shadow:0 6px 16px rgba(0,0,0,.4); z-index:25; }
+@media (max-width:800px){ .fab{ right:18px; } }
+
+/* Overlay / modal */
+.overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.55); display:none; align-items:flex-start;
+  justify-content:center; padding:5vh 14px; overflow-y:auto; z-index:70; }
+.overlay.open{ display:flex; }
+.modal{ background:var(--panel2); border:1px solid var(--line); border-radius:16px; width:100%;
+  max-width:520px; max-height:92vh; display:flex; flex-direction:column; overflow:hidden; }
+.modal h2{ margin:0; font-size:17px; }
+.modalhead{ display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:16px 20px; background:var(--panel2);
+  border-bottom:1px solid var(--line); border-radius:16px 16px 0 0; flex:none; }
+.modalbody{ padding:20px 20px 22px; overflow-y:auto; flex:1; min-height:0; }
+.modalheadbtns{ display:flex; gap:8px; flex:none; }
+.field{ margin-bottom:11px; }
+.field label{ display:block; font-size:12.5px; color:var(--muted); margin-bottom:4px; font-weight:600; }
+.field input, .field select, .field textarea{ width:100%; padding:9px 11px; background:var(--bg);
+  border:1px solid var(--line); border-radius:9px; color:var(--text); font-size:14px; }
+.field textarea{ min-height:56px; resize:vertical; }
+.row2{ display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:9px; }
+.miniadd{ display:flex; gap:8px; margin-top:6px; }
+.miniadd input{ flex:1; }
+.miniadd button{ background:var(--teal-soft); border:none; color:var(--text); padding:0 12px; border-radius:8px; }
+.chiprow2{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:6px; }
+.chip2{ background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:7px 10px;
+  display:flex; justify-content:space-between; align-items:center; font-size:13.5px; gap:8px; }
+.chip2 button{ background:none; border:none; color:var(--red); font-size:14px; }
+.chip2-incomplete{ border-color:var(--red); background:var(--red-bg); }
+.pickerdisplay{ padding:9px 11px; background:var(--bg); border:1px solid var(--line); border-radius:9px;
+  color:var(--text); font-size:14px; display:flex; align-items:center; min-height:16.8px; }
+.modalactions{ display:flex; justify-content:flex-end; gap:9px; margin-top:16px; flex-wrap:wrap; }
+.btn{ background:var(--teal); color:#fff; border:none; padding:10px 18px; border-radius:9px; font-size:14px; font-weight:600; }
+.btn.plain{ background:none; border:1px solid var(--line); color:var(--muted); }
+.btn.danger{ background:var(--red); }
+.btn.amber{ background:var(--amber); }
+.btn.small{ padding:7px 12px; font-size:13px; }
+.btn.block{ width:100%; }
+hr.sep{ border:none; border-top:1px solid var(--line); margin:14px 0; }
+.warnbox{ background:var(--amber-bg); color:var(--amber); border:1px solid var(--amber); border-radius:9px;
+  padding:10px 12px; font-size:13px; margin-bottom:12px; }
+.dupbox{ background:var(--red-bg); color:var(--red); border:1px solid var(--red); border-radius:9px;
+  padding:10px 12px; font-size:13px; margin-bottom:12px; display:none; }
+.searchgroup h3{ font-size:12.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.3px; margin:16px 0 8px; }
+.searchgroup h3:first-child{ margin-top:0; }
+@media print{
+  body *{ visibility:hidden; }
+  #printArea, #printArea *{ visibility:visible; }
+  #printArea{ position:absolute; left:0; top:0; width:100%; color:#000; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="topbar">
+    <div class="toprow">
+      <div class="titlewrap">
+        <button class="iconbtn" id="btnMenu">≡</button>
+        <button class="brandbtn" id="brandHome" type="button" title="Dashboard">
+          <h1 class="headline">Lawyer Diary</h1>
+          <div class="sub" id="orgSub">চেম্বার প্রোফাইল সেট করুন</div>
+        </button>
+      </div>
+      <button class="iconbtn" id="langToggle" title="Language / ভাষা" style="width:auto;padding:0 12px;font-size:12.5px;font-weight:700;">EN</button>
+    </div>
+    <div class="topsearch" id="topsearchBox">
+      <span class="k">⌕</span>
+      <input type="text" id="globalSearch" placeholder="মামলা, ক্লায়েন্ট, আইনজীবী, কোর্ট খুঁজুন..." data-i18n-ph="মামলা, ক্লায়েন্ট, আইনজীবী, কোর্ট খুঁজুন...">
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ================= DASHBOARD ================= -->
+    <section class="view active" id="view-dashboard">
+      <div class="statgrid">
+        <div class="statcard" data-go="today"><div class="num" id="stToday">0</div><div class="lbl" data-i18n="আজকের হিয়ারিং">আজকের হিয়ারিং</div></div>
+        <div class="statcard tomorrow" data-go="tomorrow"><div class="num" id="stTomorrow">0</div><div class="lbl" data-i18n="আগামীকাল">আগামীকাল</div></div>
+        <div class="statcard pending" data-go="overdue"><div class="num" id="stOverdue">0</div><div class="lbl" data-i18n="পেন্ডিং/ওভারডিউ">পেন্ডিং/ওভারডিউ</div></div>
+      </div>
+      <div class="statgrid">
+        <div class="statcard" data-go="active"><div class="num" id="stActive">0</div><div class="lbl" data-i18n="সক্রিয় মামলা">সক্রিয় মামলা</div></div>
+        <div class="statcard disposedcard" data-go="disposed"><div class="num" id="stDisposed">0</div><div class="lbl" data-i18n="নিষ্পত্তি">নিষ্পত্তি</div></div>
+        <div class="statcard priority" data-go="priority"><div class="num" id="stPriority">0</div><div class="lbl" data-i18n="অগ্রাধিকার">অগ্রাধিকার</div></div>
+      </div>
+      <div class="statgrid2">
+        <div class="statcard money" data-go="finance"><div class="num" id="stDue">৳০</div><div class="lbl" data-i18n="মোট বকেয়া ফি">মোট বকেয়া ফি</div></div>
+        <div class="statcard" data-go="tasks"><div class="num" id="stTasks">0</div><div class="lbl" data-i18n="অসম্পন্ন টাস্ক">অসম্পন্ন টাস্ক</div></div>
+      </div>
+
+      <div class="section-title" data-i18n="দ্রুত অ্যাকশন">দ্রুত অ্যাকশন</div>
+      <div class="quickgrid">
+        <button class="qbtn" id="qAdd">+ <span data-i18n="নতুন মামলা">নতুন মামলা</span></button>
+        <button class="qbtn alt" data-nav="cause">☰ <span data-i18n="আজকের কজ লিস্ট">আজকের কজ লিস্ট</span></button>
+        <button class="qbtn alt" data-nav="calendar">📅 <span data-i18n="ক্যালেন্ডার">ক্যালেন্ডার</span></button>
+        <button class="qbtn alt" data-nav="search">⌕ <span data-i18n="খুঁজুন">খুঁজুন</span></button>
+      </div>
+
+      <div class="section-title" data-i18n="সাম্প্রতিক কার্যক্রম">সাম্প্রতিক কার্যক্রম</div>
+      <div id="recentActivity"></div>
+    </section>
+
+    <!-- ================= CASES ================= -->
+    <section class="view" id="view-cases">
+      <div class="pagehead"><h2 data-i18n="মামলা">মামলা</h2><span class="cnt" id="casesCount"></span></div>
+      <div class="pillrow" id="caseStatusPills">
+        <button class="pill active" data-status="all" data-i18n="সব">সব</button>
+        <button class="pill" data-status="active" data-i18n="সক্রিয়">সক্রিয়</button>
+        <button class="pill" data-status="today" data-i18n="আজকের হিয়ারিং">আজকের হিয়ারিং</button>
+        <button class="pill" data-status="overdue" data-i18n="পেন্ডিং">পেন্ডিং</button>
+        <button class="pill" data-status="stayed" data-i18n="স্থগিত">স্থগিত</button>
+        <button class="pill" data-status="judgment_awaited" data-i18n="রায়ের অপেক্ষায়">রায়ের অপেক্ষায়</button>
+        <button class="pill" data-status="disposed" data-i18n="নিষ্পত্তি">নিষ্পত্তি</button>
+        <button class="pill" data-status="archived" data-i18n="আর্কাইভ">আর্কাইভ</button>
+      </div>
+      <div class="toolbar">
+        <input type="text" id="caseSearch" placeholder="কেস নম্বর, পক্ষ, কোর্ট দিয়ে খুঁজুন..." data-i18n-ph="কেস নম্বর, পক্ষ, কোর্ট দিয়ে খুঁজুন...">
+      </div>
+      <div id="casesBody"></div>
+    </section>
+
+    <!-- ================= CALENDAR ================= -->
+    <section class="view" id="view-calendar">
+      <div class="pagehead"><h2 data-i18n="ক্যালেন্ডার">ক্যালেন্ডার</h2></div>
+      <div class="cal">
+        <div class="cal-head">
+          <button id="calPrev">‹</button>
+          <div class="label" id="calLabel"></div>
+          <button id="calNext">›</button>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+      <div class="daypanel" id="dayPanel" style="display:none;">
+        <h3 id="dayPanelTitle"></h3>
+        <div id="dayPanelBody"></div>
+      </div>
+    </section>
+
+    <!-- ================= CAUSE LIST ================= -->
+    <section class="view" id="view-cause">
+      <div class="pagehead"><h2 data-i18n="কজ লিস্ট">কজ লিস্ট</h2></div>
+      <div class="pillrow">
+        <button class="pill active" data-range="today" data-i18n="আজ">আজ</button>
+        <button class="pill" data-range="tomorrow" data-i18n="আগামীকাল">আগামীকাল</button>
+        <button class="pill" data-range="week" data-i18n="এই সপ্তাহ">এই সপ্তাহ</button>
+        <button class="pill" data-range="all" data-i18n="সব আসন্ন">সব আসন্ন</button>
+        <button class="iconlink" id="btnPrintCause" style="margin-left:auto;" data-i18n="প্রিন্ট">প্রিন্ট</button>
+      </div>
+      <div class="toolbar">
+        <input type="text" id="causeSearch" placeholder="কেস নম্বর বা পক্ষের নাম দিয়ে খুঁজুন..." data-i18n-ph="কেস নম্বর বা পক্ষের নাম দিয়ে খুঁজুন...">
+      </div>
+      <div id="causeBody"></div>
+    </section>
+
+    <!-- ================= CLIENTS ================= -->
+    <section class="view" id="view-clients">
+      <div class="pagehead"><h2 data-i18n="ক্লায়েন্ট">ক্লায়েন্ট</h2><button class="btn small" id="btnAddClient">+ <span data-i18n="নতুন">নতুন</span></button></div>
+      <div class="toolbar"><input type="text" id="clientSearch" placeholder="নাম বা মোবাইল দিয়ে খুঁজুন..." data-i18n-ph="নাম বা মোবাইল দিয়ে খুঁজুন..."></div>
+      <div id="clientsBody"></div>
+    </section>
+
+    <!-- ================= LAWYERS ================= -->
+    <section class="view" id="view-lawyers">
+      <div class="pagehead"><h2 data-i18n="আইনজীবী তালিকা">আইনজীবী তালিকা</h2><button class="btn small" id="btnAddLawyer">+ <span data-i18n="নতুন">নতুন</span></button></div>
+      <div class="toolbar"><input type="text" id="lawyerSearch" placeholder="নাম, চেম্বার বা মোবাইল দিয়ে খুঁজুন..." data-i18n-ph="নাম, চেম্বার বা মোবাইল দিয়ে খুঁজুন..."></div>
+      <div id="lawyersBody"></div>
+    </section>
+
+    <!-- ================= TASKS ================= -->
+    <section class="view" id="view-tasks">
+      <div class="pagehead"><h2 data-i18n="টাস্ক">টাস্ক</h2><button class="btn small" id="btnAddTask">+ <span data-i18n="নতুন">নতুন</span></button></div>
+      <div class="pillrow" id="taskPills">
+        <button class="pill active" data-tf="pending" data-i18n="চলমান">চলমান</button>
+        <button class="pill" data-tf="done" data-i18n="সম্পন্ন">সম্পন্ন</button>
+        <button class="pill" data-tf="all" data-i18n="সব">সব</button>
+      </div>
+      <div id="tasksBody"></div>
+    </section>
+
+    <!-- ================= DOCUMENTS ================= -->
+    <section class="view" id="view-documents">
+      <div class="pagehead"><h2 data-i18n="ডকুমেন্ট">ডকুমেন্ট</h2><button class="btn small" id="btnAddDoc">+ <span data-i18n="আপলোড">আপলোড</span></button></div>
+      <div class="toolbar"><input type="text" id="docSearch" placeholder="ডকুমেন্ট বা কেস নম্বর দিয়ে খুঁজুন..." data-i18n-ph="ডকুমেন্ট বা কেস নম্বর দিয়ে খুঁজুন..."></div>
+      <div id="docsBody"></div>
+    </section>
+
+    <!-- ================= FINANCE ================= -->
+    <section class="view" id="view-finance">
+      <div class="pagehead"><h2 data-i18n="ফাইন্যান্স">ফাইন্যান্স</h2><button class="btn small" id="btnAddPayment">+ <span data-i18n="পেমেন্ট/খরচ">পেমেন্ট/খরচ</span></button></div>
+      <div class="statgrid" style="margin-bottom:16px;">
+        <div class="statcard"><div class="num" id="finFee" style="font-size:15px;">৳০</div><div class="lbl" data-i18n="মোট ফি">মোট ফি</div></div>
+        <div class="statcard"><div class="num" id="finPaid" style="font-size:15px;">৳০</div><div class="lbl" data-i18n="প্রাপ্ত">প্রাপ্ত</div></div>
+        <div class="statcard pending"><div class="num" id="finDue" style="font-size:15px;">৳০</div><div class="lbl" data-i18n="বকেয়া">বকেয়া</div></div>
+      </div>
+      <div class="section-title" data-i18n="কেসভিত্তিক সারাংশ">কেসভিত্তিক সারাংশ</div>
+      <div style="overflow-x:auto;">
+        <table class="financetable">
+          <thead><tr><th data-i18n="মামলা">মামলা</th><th data-i18n="ফি">ফি</th><th data-i18n="প্রাপ্ত">প্রাপ্ত</th><th data-i18n="বকেয়া">বকেয়া</th></tr></thead>
+          <tbody id="financeTableBody"></tbody>
+        </table>
+      </div>
+      <div class="section-title" data-i18n="সাম্প্রতিক লেনদেন">সাম্প্রতিক লেনদেন</div>
+      <div id="paymentsList"></div>
+    </section>
+
+    <!-- ================= REPORTS ================= -->
+    <section class="view" id="view-reports">
+      <div class="pagehead"><h2 data-i18n="রিপোর্ট">রিপোর্ট</h2></div>
+      <button class="reportbtn" data-report="todayCause"><span data-i18n="আজকের কজ লিস্ট">আজকের কজ লিস্ট</span><span class="arrow">›</span></button>
+      <button class="reportbtn" data-report="tomorrowCause"><span data-i18n="আগামীকালের কজ লিস্ট">আগামীকালের কজ লিস্ট</span><span class="arrow">›</span></button>
+      <button class="reportbtn" data-report="active"><span data-i18n="সক্রিয় মামলার তালিকা">সক্রিয় মামলার তালিকা</span><span class="arrow">›</span></button>
+      <button class="reportbtn" data-report="disposed"><span data-i18n="নিষ্পত্তি হওয়া মামলা">নিষ্পত্তি হওয়া মামলা</span><span class="arrow">›</span></button>
+      <button class="reportbtn" data-report="byCourt"><span data-i18n="কোর্টভিত্তিক মামলার সংখ্যা">কোর্টভিত্তিক মামলার সংখ্যা</span><span class="arrow">›</span></button>
+      <button class="reportbtn" data-report="byLawyer"><span data-i18n="আইনজীবীভিত্তিক মামলা">আইনজীবীভিত্তিক মামলা</span><span class="arrow">›</span></button>
+      <button class="reportbtn" data-report="byClient"><span data-i18n="ক্লায়েন্টভিত্তিক মামলা">ক্লায়েন্টভিত্তিক মামলা</span><span class="arrow">›</span></button>
+      <button class="reportbtn" data-report="feeDue"><span data-i18n="বকেয়া ফি রিপোর্ট">বকেয়া ফি রিপোর্ট</span><span class="arrow">›</span></button>
+      <div id="reportOutputWrap" style="display:none;">
+        <hr class="sep">
+        <div class="reportactions">
+          <button class="btn small plain" id="btnReportPrint" data-i18n="প্রিন্ট">প্রিন্ট</button>
+          <button class="btn small plain" id="btnReportCsv" data-i18n="CSV এক্সপোর্ট">CSV এক্সপোর্ট</button>
+        </div>
+        <div id="printArea"><div id="reportOutput"></div></div>
+      </div>
+    </section>
+
+    <!-- ================= SETTINGS ================= -->
+    <section class="view" id="view-settings">
+      <div class="pagehead"><h2 data-i18n="সেটিংস">সেটিংস</h2></div>
+      <div class="section-title" style="margin-top:0;" data-i18n="ভাষা">ভাষা</div>
+      <div class="courtbuilder">
+        <div class="helptext" data-i18n="পুরো অ্যাপের ভাষা বদলাতে উপরের EN/বাং বাটনে চাপুন।">পুরো অ্যাপের ভাষা বদলাতে উপরের EN/বাং বাটনে চাপুন।</div>
+      </div>
+
+      <div class="section-title" data-i18n="চেম্বার / প্রতিষ্ঠানের তথ্য">চেম্বার / প্রতিষ্ঠানের তথ্য</div>
+      <div class="courtbuilder">
+        <div class="field"><label data-i18n="চেম্বার / প্রতিষ্ঠানের নাম">চেম্বার / প্রতিষ্ঠানের নাম</label><input type="text" id="orgName" placeholder="যেমনঃ হক ল চেম্বার্স" data-i18n-ph="যেমনঃ হক ল চেম্বার্স"></div>
+        <div class="field"><label data-i18n="আপনার ভূমিকা (ডেমো — ভবিষ্যতে API-ভিত্তিক ইউজার/রোল সিস্টেম যুক্ত হবে)">আপনার ভূমিকা (ডেমো — ভবিষ্যতে API-ভিত্তিক ইউজার/রোল সিস্টেম যুক্ত হবে)</label>
+          <select id="orgRole">
+            <option value="owner" data-i18n="মালিক / এডমিন">মালিক / এডমিন</option>
+            <option value="lawyer" data-i18n="আইনজীবী">আইনজীবী</option>
+            <option value="associate" data-i18n="এসোসিয়েট">এসোসিয়েট</option>
+            <option value="assistant" data-i18n="লিগ্যাল অ্যাসিস্ট্যান্ট">লিগ্যাল অ্যাসিস্ট্যান্ট</option>
+            <option value="staff" data-i18n="স্টাফ">স্টাফ</option>
+            <option value="readonly" data-i18n="শুধু দেখার অনুমতি">শুধু দেখার অনুমতি</option>
+          </select>
+        </div>
+        <button type="button" class="btn block" id="btnSaveOrg" data-i18n="সংরক্ষণ করুন">সংরক্ষণ করুন</button>
+      </div>
+
+      <div class="section-title" data-i18n="কোর্টের নাম সেটআপ">কোর্টের নাম সেটআপ</div>
+      <div class="chiprow" id="courtChips"></div>
+      <div class="courtbuilder">
+        <div class="field">
+          <label data-i18n="কোর্টের ধরন বাছাই করুন">কোর্টের ধরন বাছাই করুন</label>
+          <select id="cb_template"></select>
+        </div>
+        <div class="helptext" data-i18n="যে ধরন বাছাই করবেন, শুধু সেই অনুযায়ী তথ্য চাওয়া হবে। যোগ করার আগে মিল থাকা কোর্ট আছে কিনা যাচাই করা হয়।">যে ধরন বাছাই করবেন, শুধু সেই অনুযায়ী তথ্য চাওয়া হবে। যোগ করার আগে মিল থাকা কোর্ট আছে কিনা যাচাই করা হয়।</div>
+        <div id="cb_extra"></div>
+        <button type="button" class="btn block" id="cb_addBtn" style="margin-top:10px;" data-i18n="+ কোর্ট যোগ করুন">+ কোর্ট যোগ করুন</button>
+      </div>
+
+      <div class="section-title" data-i18n="ক্লাউড সিঙ্ক (Google Sheet)">ক্লাউড সিঙ্ক (Google Sheet)</div>
+      <div class="courtbuilder">
+        <div class="helptext" style="margin-bottom:10px;" data-i18n="Google Apps Script দিয়ে বানানো ওয়েব অ্যাপের লিংক এখানে বসান — এরপর পিসি, মোবাইল সব জায়গা থেকে একই ডেটা দেখা ও সিঙ্ক হওয়া যাবে। প্রতিটি ডিভাইসে একবার করে এই লিংক বসাতে হবে।">Google Apps Script দিয়ে বানানো ওয়েব অ্যাপের লিংক এখানে বসান — এরপর পিসি, মোবাইল সব জায়গা থেকে একই ডেটা দেখা ও সিঙ্ক হওয়া যাবে। প্রতিটি ডিভাইসে একবার করে এই লিংক বসাতে হবে।</div>
+        <div class="field">
+          <label data-i18n="Apps Script ওয়েব অ্যাপ URL">Apps Script ওয়েব অ্যাপ URL</label>
+          <input type="text" id="syncUrlInput" placeholder="https://script.google.com/macros/s/.../exec" style="direction:ltr; text-align:left;">
+        </div>
+        <div class="row2">
+          <button type="button" class="btn block" id="btnSaveSyncUrl" data-i18n="সংরক্ষণ ও সিঙ্ক করুন">সংরক্ষণ ও সিঙ্ক করুন</button>
+          <button type="button" class="btn plain block" id="btnSyncNow" data-i18n="এখনই সিঙ্ক করুন">এখনই সিঙ্ক করুন</button>
+        </div>
+        <div class="helptext" id="syncStatus" style="margin-top:10px;" data-i18n="সিঙ্ক বন্ধ আছে">সিঙ্ক বন্ধ আছে</div>
+      </div>
+
+      <div class="section-title" data-i18n="ডেটা">ডেটা</div>
+      <div class="courtbuilder">
+        <div class="helptext" style="margin-bottom:10px;" data-i18n="ক্লাউড সিঙ্ক চালু না থাকলে সব তথ্য শুধু এই ব্রাউজারেই সংরক্ষিত থাকে। নিয়মিত ব্যাকআপ নিয়ে রাখা ভালো অভ্যাস।">ক্লাউড সিঙ্ক চালু না থাকলে সব তথ্য শুধু এই ব্রাউজারেই সংরক্ষিত থাকে। নিয়মিত ব্যাকআপ নিয়ে রাখা ভালো অভ্যাস।</div>
+        <button type="button" class="btn plain block" id="btnExportAll" data-i18n="সম্পূর্ণ ব্যাকআপ (JSON) ডাউনলোড">সম্পূর্ণ ব্যাকআপ (JSON) ডাউনলোড</button>
+      </div>
+    </section>
+
+    <!-- ================= UNIVERSAL SEARCH ================= -->
+    <section class="view" id="view-search">
+      <div class="pagehead"><h2 data-i18n="ইউনিভার্সাল সার্চ">ইউনিভার্সাল সার্চ</h2></div>
+      <div class="toolbar">
+        <input type="text" id="searchBox" placeholder="মামলা নম্বর, পক্ষ, ক্লায়েন্ট, আইনজীবী, কোর্ট, থানা..." data-i18n-ph="মামলা নম্বর, পক্ষ, ক্লায়েন্ট, আইনজীবী, কোর্ট, থানা...">
+      </div>
+      <div class="field"><label data-i18n="অথবা নির্দিষ্ট তারিখ দিয়ে খুঁজুন (হিয়ারিং)">অথবা নির্দিষ্ট তারিখ দিয়ে খুঁজুন (হিয়ারিং)</label><input type="date" id="searchDateBox"></div>
+      <div id="searchResults"><div class="empty" data-i18n="লিখুন বা তারিখ বাছাই করুন — কেস, ক্লায়েন্ট, আইনজীবী ও কোর্ট সব জায়গায় খোঁজা হবে।">লিখুন বা তারিখ বাছাই করুন — কেস, ক্লায়েন্ট, আইনজীবী ও কোর্ট সব জায়গায় খোঁজা হবে।</div></div>
+    </section>
+
+    <!-- ================= CASE DETAIL ================= -->
+    <section class="view" id="view-casedetail">
+      <button class="iconlink" id="backFromDetail" data-i18n="‹ ফিরে যান">‹ ফিরে যান</button>
+      <div class="profilecard" id="detailProfile"></div>
+
+      <div class="tabsrow">
+        <button class="active" data-tab="hearings" data-i18n="হিয়ারিং">হিয়ারিং</button>
+        <button data-tab="tasks" data-i18n="টাস্ক">টাস্ক</button>
+        <button data-tab="docs" data-i18n="ডকুমেন্ট">ডকুমেন্ট</button>
+        <button data-tab="finance" data-i18n="ফাইন্যান্স">ফাইন্যান্স</button>
+      </div>
+
+      <div class="tabpane active" id="tab-hearings">
+        <button class="qbtn block" id="btnAddHearing" style="width:100%; margin-bottom:12px;" data-i18n="+ নতুন হিয়ারিং যোগ করুন">+ নতুন হিয়ারিং যোগ করুন</button>
+        <div id="detailHistory"></div>
+      </div>
+      <div class="tabpane" id="tab-tasks">
+        <button class="qbtn block" id="btnAddCaseTask" style="width:100%; margin-bottom:12px;" data-i18n="+ এই মামলার জন্য টাস্ক">+ এই মামলার জন্য টাস্ক</button>
+        <div id="detailTasks"></div>
+      </div>
+      <div class="tabpane" id="tab-docs">
+        <button class="qbtn block" id="btnAddCaseDoc" style="width:100%; margin-bottom:12px;" data-i18n="+ ডকুমেন্ট আপলোড">+ ডকুমেন্ট আপলোড</button>
+        <div id="detailDocs"></div>
+      </div>
+      <div class="tabpane" id="tab-finance">
+        <button class="qbtn block" id="btnAddCasePayment" style="width:100%; margin-bottom:12px;" data-i18n="+ পেমেন্ট/খরচ যোগ করুন">+ পেমেন্ট/খরচ যোগ করুন</button>
+        <div id="detailFinance"></div>
+      </div>
+    </section>
+
+  </div>
+
+  <button class="fab" id="fabAdd">+</button>
+
+  <nav class="bottomnav">
+    <button class="navbtn active" data-view="dashboard"><span class="ic">🏠</span><span data-i18n="ড্যাশবোর্ড">ড্যাশবোর্ড</span></button>
+    <button class="navbtn" data-view="cases"><span class="ic">📁</span><span data-i18n="মামলা">মামলা</span></button>
+    <button class="navbtn" data-view="calendar"><span class="ic">📅</span><span data-i18n="ক্যালেন্ডার">ক্যালেন্ডার</span></button>
+    <button class="navbtn" data-view="cause"><span class="ic">📋</span><span data-i18n="কজ লিস্ট">কজ লিস্ট</span></button>
+    <button class="navbtn" data-view="search"><span class="ic">⌕</span><span data-i18n="খুঁজুন">খুঁজুন</span></button>
+  </nav>
+</div>
+
+<!-- DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay">
+  <div class="drawer">
+    <div class="orgbox">
+      <div class="oname" id="drawerOrgName">চেম্বার সেট করা হয়নি</div>
+      <div class="orole" id="drawerOrgRole">সেটিংস থেকে যোগ করুন</div>
+    </div>
+    <h2 data-i18n="প্রধান">প্রধান</h2>
+    <button class="item" data-view="dashboard">🏠 <span data-i18n="ড্যাশবোর্ড">ড্যাশবোর্ড</span></button>
+    <button class="item" data-view="cases">📁 <span data-i18n="মামলা">মামলা</span></button>
+    <button class="item" data-view="calendar">📅 <span data-i18n="ক্যালেন্ডার">ক্যালেন্ডার</span></button>
+    <button class="item" data-view="cause">📋 <span data-i18n="কজ লিস্ট">কজ লিস্ট</span></button>
+    <button class="item" data-view="search">🔎 <span data-i18n="ইউনিভার্সাল সার্চ">ইউনিভার্সাল সার্চ</span></button>
+    <h2 data-i18n="পরিচালনা">পরিচালনা</h2>
+    <button class="item" data-view="clients">🧑‍💼 <span data-i18n="ক্লায়েন্ট">ক্লায়েন্ট</span></button>
+    <button class="item" data-view="lawyers">⚖️ <span data-i18n="আইনজীবী তালিকা">আইনজীবী তালিকা</span></button>
+    <button class="item" data-view="tasks">✅ <span data-i18n="টাস্ক">টাস্ক</span></button>
+    <button class="item" data-view="documents">📎 <span data-i18n="ডকুমেন্ট">ডকুমেন্ট</span></button>
+    <button class="item" data-view="finance">৳ <span data-i18n="ফাইন্যান্স">ফাইন্যান্স</span></button>
+    <button class="item" data-view="reports">📊 <span data-i18n="রিপোর্ট">রিপোর্ট</span></button>
+    <h2 data-i18n="অন্যান্য">অন্যান্য</h2>
+    <button class="item" data-view="settings">⚙️ <span data-i18n="সেটিংস">সেটিংস</span></button>
+  </div>
+</div>
+
+<!-- ADD / EDIT CASE MODAL -->
+<div class="overlay" id="caseOverlay">
+  <div class="modal">
+    <div class="modalhead">
+      <h2 id="caseModalTitle" data-i18n="নতুন মামলা যোগ করুন">নতুন মামলা যোগ করুন</h2>
+      <div class="modalheadbtns">
+        <button type="button" class="btn plain small" id="caseCancel" data-i18n="বাতিল">বাতিল</button>
+        <button type="submit" form="caseForm" class="btn small" data-i18n="সংরক্ষণ করুন">সংরক্ষণ করুন</button>
+      </div>
+    </div>
+    <div class="modalbody">
+    <div class="dupbox" id="dupWarning">এই কেস নম্বর, কোর্ট ও সালে ইতিমধ্যে একটি মামলা আছে বলে মনে হচ্ছে। তবুও এগিয়ে যেতে চাইলে আবার &quot;সংরক্ষণ&quot; চাপুন।</div>
+    <form id="caseForm">
+      <div class="row2">
+        <div class="field"><label data-i18n="কেস নম্বর *">কেস নম্বর *</label><input type="text" id="f_caseNumber" required></div>
+        <div class="field"><label data-i18n="কেসের ধরন">কেসের ধরন</label><input type="text" id="f_caseType" placeholder="যেমনঃ মানি স্যুট" data-i18n-ph="যেমনঃ মানি স্যুট"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label data-i18n="সাল">সাল</label><input type="text" id="f_caseYear" placeholder="২০২৬"></div>
+        <div class="field"><label data-i18n="দাখিলের তারিখ">দাখিলের তারিখ</label><input type="date" id="f_filingDate"></div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label data-i18n="কোর্টের নাম">কোর্টের নাম</label>
+          <div class="miniadd">
+            <select id="f_court" style="flex:1;"></select>
+            <button type="button" id="f_openCourtModal" title="নতুন কোর্ট যোগ করুন" data-i18n="+ নতুন কোর্ট">+ নতুন কোর্ট</button>
+          </div>
+        </div>
+        <div class="field"><label data-i18n="বেঞ্চ / বিচারক">বেঞ্চ / বিচারক</label><input type="text" id="f_bench"></div>
+      </div>
+      <div class="row3">
+        <div class="field"><label data-i18n="বিভাগ">বিভাগ</label><input type="text" id="f_division"></div>
+        <div class="field"><label data-i18n="জেলা">জেলা</label><input type="text" id="f_district"></div>
+        <div class="field"><label data-i18n="থানা">থানা</label><input type="text" id="f_thana"></div>
+      </div>
+
+      <hr class="sep">
+      <div class="field">
+        <label data-i18n="ক্লায়েন্ট">ক্লায়েন্ট</label>
+        <div class="miniadd">
+          <div class="pickerdisplay" id="f_clientDisplay" style="flex:1;" data-i18n="— নির্বাচন করুন —">— নির্বাচন করুন —</div>
+          <button type="button" id="f_clientPickBtn" data-i18n="বাছাই করুন">বাছাই করুন</button>
+        </div>
+        <input type="hidden" id="f_client">
+        <div class="miniadd">
+          <input type="text" id="f_newClient" placeholder="নতুন ক্লায়েন্টের নাম" data-i18n-ph="নতুন ক্লায়েন্টের নাম">
+          <button type="button" id="f_addClientInline" data-i18n="+ যোগ">+ যোগ</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label data-i18n="বাদী(গণ)">বাদী(গণ)</label>
+        <div class="chiprow2" id="plaintiffChips"></div>
+        <div class="miniadd"><input type="text" id="f_plaintiffName" placeholder="নাম লিখে যোগ করুন" data-i18n-ph="নাম লিখে যোগ করুন"><button type="button" id="addPlaintiff" data-i18n="+ যোগ">+ যোগ</button></div>
+      </div>
+      <div class="field">
+        <label data-i18n="বিবাদী(গণ)">বিবাদী(গণ)</label>
+        <div class="chiprow2" id="defendantChips"></div>
+        <div class="miniadd"><input type="text" id="f_defendantName" placeholder="নাম লিখে যোগ করুন" data-i18n-ph="নাম লিখে যোগ করুন"><button type="button" id="addDefendant" data-i18n="+ যোগ">+ যোগ</button></div>
+      </div>
+      <div class="field">
+        <label data-i18n="সংশ্লিষ্ট আইনজীবী(গণ)">সংশ্লিষ্ট আইনজীবী(গণ)</label>
+        <div class="chiprow2" id="lawyerChips"></div>
+        <div class="row2">
+          <select id="f_lawyerSelect"><option value="" data-i18n="— আইনজীবী বাছাই —">— আইনজীবী বাছাই —</option></select>
+          <select id="f_lawyerSide">
+            <option value="own" data-i18n="নিজ পক্ষ">নিজ পক্ষ</option>
+            <option value="plaintiff" data-i18n="বাদী পক্ষ">বাদী পক্ষ</option>
+            <option value="defendant" data-i18n="বিবাদী পক্ষ">বিবাদী পক্ষ</option>
+          </select>
+        </div>
+        <div class="miniadd">
+          <input type="text" id="f_newLawyer" placeholder="তালিকায় না থাকলে নতুন আইনজীবীর নাম" data-i18n-ph="তালিকায় না থাকলে নতুন আইনজীবীর নাম">
+          <button type="button" id="addLawyerLink" data-i18n="+ যোগ">+ যোগ</button>
+        </div>
+        <div class="helptext" data-i18n="তালিকায় না থাকা নাম লিখলে সেই চিপ লাল রঙে দেখাবে — পরে সেটিংস থেকে আইনজীবী তালিকায় যোগ করে দিন।">তালিকায় না থাকা নাম লিখলে সেই চিপ লাল রঙে দেখাবে — পরে সেটিংস থেকে আইনজীবী তালিকায় যোগ করে দিন।</div>
+      </div>
+
+      <hr class="sep">
+      <div class="row2">
+        <div class="field"><label data-i18n="অগ্রাধিকার">অগ্রাধিকার</label>
+          <select id="f_priority"><option value="normal" data-i18n="সাধারণ">সাধারণ</option><option value="high" data-i18n="উচ্চ অগ্রাধিকার">উচ্চ অগ্রাধিকার</option></select>
+        </div>
+        <div class="field"><label data-i18n="স্ট্যাটাস">স্ট্যাটাস</label>
+          <select id="f_status">
+            <option value="draft" data-i18n="খসড়া">খসড়া</option>
+            <option value="active" selected data-i18n="সক্রিয়">সক্রিয়</option>
+            <option value="stayed" data-i18n="স্থগিত">স্থগিত</option>
+            <option value="reserved" data-i18n="সংরক্ষিত (Reserved)">সংরক্ষিত (Reserved)</option>
+            <option value="judgment_awaited" data-i18n="রায়ের অপেক্ষায়">রায়ের অপেক্ষায়</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label data-i18n="ট্যাগ (কমা দিয়ে আলাদা করুন)">ট্যাগ (কমা দিয়ে আলাদা করুন)</label><input type="text" id="f_tags" placeholder="যেমনঃ জরুরি, আপোষযোগ্য" data-i18n-ph="যেমনঃ জরুরি, আপোষযোগ্য"></div>
+      <div class="field"><label data-i18n="গুরুত্বপূর্ণ নোট">গুরুত্বপূর্ণ নোট</label><textarea id="f_notes"></textarea></div>
+      <div class="field"><label data-i18n="নির্ধারিত ফি (টাকা)">নির্ধারিত ফি (টাকা)</label><input type="number" id="f_agreedFee" min="0"></div>
+
+      <hr class="sep">
+      <div class="section-title" style="margin-top:0;" data-i18n="প্রথম হিয়ারিং তথ্য">প্রথম হিয়ারিং তথ্য</div>
+      <div class="row2">
+        <div class="field"><label data-i18n="তারিখ *">তারিখ *</label><input type="date" id="f_date" required></div>
+        <div class="field"><label data-i18n="আদেশ নম্বর">আদেশ নম্বর</label><input type="text" id="f_orderNumber"></div>
+      </div>
+      <div class="field"><label data-i18n="কার্যক্রম">কার্যক্রম</label><input type="text" id="f_shortOrder"></div>
+      <div class="field"><label data-i18n="ডিটেইল আদেশ">ডিটেইল আদেশ</label><textarea id="f_detailOrder"></textarea></div>
+      <div class="field"><label data-i18n="পরবর্তী তারিখ (থাকলে)">পরবর্তী তারিখ (থাকলে)</label><input type="date" id="f_nextDate"></div>
+    </form>
+    </div>
+  </div>
+</div>
+
+<!-- ADD COURT MODAL (structured builder, same as Settings) -->
+<div class="overlay" id="courtModalOverlay">
+  <div class="modal">
+    <div class="modalhead">
+      <h2 data-i18n="নতুন কোর্ট যোগ করুন">নতুন কোর্ট যোগ করুন</h2>
+      <div class="modalheadbtns">
+        <button type="button" class="btn plain small" id="courtModalCancel" data-i18n="বাতিল">বাতিল</button>
+        <button type="button" class="btn small" id="cbm_addBtn" data-i18n="+ কোর্ট যোগ করুন">+ কোর্ট যোগ করুন</button>
+      </div>
+    </div>
+    <div class="modalbody">
+      <div class="field">
+        <label data-i18n="কোর্টের ধরন বাছাই করুন">কোর্টের ধরন বাছাই করুন</label>
+        <select id="cbm_template"></select>
+      </div>
+      <div class="helptext" data-i18n="যে ধরন বাছাই করবেন, শুধু সেই অনুযায়ী তথ্য চাওয়া হবে। যোগ করার আগে মিল থাকা কোর্ট আছে কিনা যাচাই করা হয়।">যে ধরন বাছাই করবেন, শুধু সেই অনুযায়ী তথ্য চাওয়া হবে। যোগ করার আগে মিল থাকা কোর্ট আছে কিনা যাচাই করা হয়।</div>
+      <div id="cbm_extra"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CLIENT PICKER MODAL (searchable, for large client lists) -->
+<div class="overlay" id="clientPickerOverlay">
+  <div class="modal">
+    <div class="modalhead">
+      <h2 data-i18n="ক্লায়েন্ট বাছাই করুন">ক্লায়েন্ট বাছাই করুন</h2>
+      <div class="modalheadbtns">
+        <button type="button" class="btn plain small" id="clientPickerCancel" data-i18n="বন্ধ করুন">বন্ধ করুন</button>
+      </div>
+    </div>
+    <div class="modalbody">
+      <div class="toolbar" style="margin-bottom:10px;">
+        <input type="text" id="clientPickerSearch" placeholder="নাম বা মোবাইল দিয়ে খুঁজুন..." data-i18n-ph="নাম বা মোবাইল দিয়ে খুঁজুন...">
+      </div>
+      <div id="clientPickerList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD HEARING MODAL -->
+<div class="overlay" id="hearingOverlay">
+  <div class="modal">
+    <div class="modalhead">
+      <h2 data-i18n="নতুন হিয়ারিং যোগ করুন">নতুন হিয়ারিং যোগ করুন</h2>
+      <div class="modalheadbtns">
+        <button type="button" class="btn plain small" id="hearingCancel" data-i18n="বাতিল">বাতিল</button>
+        <button type="submit" form="hearingForm" class="btn small" data-i18n="সংরক্ষণ করুন">সংরক্ষণ করুন</button>
+      </div>
+    </div>
+        <div class="modalbody">
+<form id="hearingForm">
+      <div class="row2">
+        <div class="field"><label data-i18n="তারিখ *">তারিখ *</label><input type="date" id="h_date" required></div>
+        <div class="field"><label data-i18n="সময়">সময়</label><input type="time" id="h_time"></div>
+      </div>
+      <div class="field"><label data-i18n="ইভেন্টের ধরন">ইভেন্টের ধরন</label>
+        <select id="h_type">
+          <option value="hearing" data-i18n="হিয়ারিং">হিয়ারিং</option>
+          <option value="order" data-i18n="আদেশ">আদেশ</option>
+          <option value="argument" data-i18n="যুক্তিতর্ক">যুক্তিতর্ক</option>
+          <option value="evidence" data-i18n="সাক্ষ্য গ্রহণ">সাক্ষ্য গ্রহণ</option>
+          <option value="judgment" data-i18n="রায়">রায়</option>
+          <option value="other" data-i18n="অন্যান্য">অন্যান্য</option>
+        </select>
+      </div>
+      <div class="row2">
+        <div class="field"><label data-i18n="আদেশ নম্বর">আদেশ নম্বর</label><input type="text" id="h_orderNumber"></div>
+        <div class="field"><label data-i18n="ফলাফল">ফলাফল</label><input type="text" id="h_outcome"></div>
+      </div>
+      <div class="field"><label data-i18n="কার্যক্রম">কার্যক্রম</label><input type="text" id="h_shortOrder"></div>
+      <div class="field"><label data-i18n="ডিটেইল আদেশ">ডিটেইল আদেশ</label><textarea id="h_detailOrder"></textarea></div>
+      <div class="field"><label data-i18n="মুলতবির কারণ (যদি থাকে)">মুলতবির কারণ (যদি থাকে)</label><input type="text" id="h_adjourn"></div>
+      <div class="field"><label data-i18n="অভ্যন্তরীণ নোট">অভ্যন্তরীণ নোট</label><textarea id="h_note"></textarea></div>
+      <div class="field"><label data-i18n="পরবর্তী তারিখ">পরবর্তী তারিখ</label><input type="date" id="h_nextDate"></div>
+    </form>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS / DISPOSE MODAL -->
+<div class="overlay" id="disposeOverlay">
+  <div class="modal">
+    <div class="modalhead">
+      <h2 data-i18n="মামলা নিষ্পত্তি করুন">মামলা নিষ্পত্তি করুন</h2>
+      <div class="modalheadbtns">
+        <button type="button" class="btn plain small" id="disposeCancel" data-i18n="বাতিল">বাতিল</button>
+        <button type="submit" form="disposeForm" class="btn small danger" data-i18n="নিষ্পত্তি নিশ্চিত করুন">নিষ্পত্তি নিশ্চিত করুন</button>
+      </div>
+    </div>
+        <div class="modalbody">
+<form id="disposeForm">
+      <div class="field"><label data-i18n="নিষ্পত্তির তারিখ">নিষ্পত্তির তারিখ</label><input type="date" id="disp_date" required></div>
+      <div class="field"><label data-i18n="কারণ">কারণ</label><textarea id="disp_reason" required></textarea></div>
+    </form>
+    </div>
+  </div>
+</div>
+
+<!-- CLIENT MODAL -->
+<div class="overlay" id="clientOverlay">
+  <div class="modal">
+    <div class="modalhead">
+      <h2 id="clientModalTitle" data-i18n="নতুন ক্লায়েন্ট">নতুন ক্লায়েন্ট</h2>
+      <div class="modalheadbtns">
+        <button type="button" class="btn plain small" id="clientCancel" data-i18n="বাতিল">বাতিল</button>
+        <button type="submit" form="clientForm" class="btn small" data-i18n="সংরক্ষণ করুন">সংরক্ষণ করুন</button>
+      </div>
+    </div>
+        <div class="modalbody">
+<form id="clientForm">
+      <div class="field"><label data-i18n="নাম *">নাম *</label><input type="text" id="cl_name" required></div>
+      <div class="row2">
+        <div class="field"><label data-i18n="মোবাইল">মোবাইল</label><input type="text" id="cl_mobile"></div>
+        <div class="field"><label data-i18n="ইমেইল">ইমেইল</label><input type="email" id="cl_email"></div>
+      </div>
+      <div class="field"><label data-i18n="ঠিকানা">ঠিকানা</label><input type="text" id="cl_address"></div>
+      <div class="field"><label data-i18n="নোট">নোট</label><textarea id="cl_notes"></textarea></div>
+    </form>
+    </div>
+  </div>
+</div>
+
+<!-- LAWYER MODAL -->
+<div class="overlay" id="lawyerOverlay">
+  <div class="modal">
+    <div class="modalhead">
+      <h2 id="lawyerModalTitle" data-i18n="নতুন আইনজীবী">নতুন আইনজীবী</h2>
+      <div class="modalheadbtns">
+        <button type="button" class="btn plain small" id="lawyerCancel" data-i18n="বাতিল">বাতিল</button>
+        <button type="submit" form="lawyerForm" class="btn small" data-i18n="সংরক্ষণ করুন">সংরক্ষণ করুন</button>
+      </div>
+    </div>
+        <div class="modalbody">
+<form id="lawyerForm">
+      <div class="field"><label data-i18n="নাম *">নাম *</label><input type="text" id="lw_name" required></div>
+      <div class="row2">
+        <div class="field"><label data-i18n="বার এনরোলমেন্ট নম্বর">বার এনরোলমেন্ট নম্বর</label><input type="text" id="lw_bar"></div>
+        <div class="field"><label data-i18n="মোবাইল">মোবাইল</label><input type="text" id="lw_mobile"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label data-i18n="ইমেইল">ইমেইল</label><input type="email" id="lw_email"></div>
+        <div class="field"><label data-i18n="চেম্বার">চেম্বার</label><input type="text" id="lw_chamber"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label data-i18n="বিশেষজ্ঞতা">বিশেষজ্ঞতা</label><input type="text" id="lw_spec"></div>
+        <div class="field"><label data-i18n="স্ট্যাটাস">স্ট্যাটাস</label>
+          <select id="lw_active"><option value="active" data-i18n="সক্রিয়">সক্রিয়</option><option value="inactive" data-i18n="নিষ্ক্রিয়">নিষ্ক্রিয়</option></select>
+        </div>
+      </div>
+      <div class="field"><label data-i18n="ঠিকানা">ঠিকানা</label><input type="text" id="lw_address"></div>
+    </form>
+    </div>
+  </div>
+</div>
+
+<!-- TASK MODAL -->
+<div class="overlay" id="taskOverlay">
+  <div class="modal">
+    <div class="modalhead">
+      <h2 data-i18n="নতুন টাস্ক">নতুন টাস্ক</h2>
+      <div class="modalheadbtns">
+        <button type="button" class="btn plain small" id="taskCancel" data-i18n="বাতিল">বাতিল</button>
+        <button type="submit" form="taskForm" class="btn small" data-i18n="সংরক্ষণ করুন">সংরক্ষণ করুন</button>
+      </div>
+    </div>
+        <div class="modalbody">
+<form id="taskForm">
+      <div class="field"><label data-i18n="শিরোনাম *">শিরোনাম *</label><input type="text" id="tk_title" required></div>
+      <div class="field"><label data-i18n="সংশ্লিষ্ট মামলা (ঐচ্ছিক)">সংশ্লিষ্ট মামলা (ঐচ্ছিক)</label><select id="tk_case"><option value="" data-i18n="— নেই —">— নেই —</option></select></div>
+      <div class="row2">
+        <div class="field"><label data-i18n="দায়িত্বপ্রাপ্ত">দায়িত্বপ্রাপ্ত</label><input type="text" id="tk_assignee" placeholder="নাম লিখুন" data-i18n-ph="নাম লিখুন"></div>
+        <div class="field"><label data-i18n="নির্ধারিত তারিখ">নির্ধারিত তারিখ</label><input type="date" id="tk_due"></div>
+      </div>
+      <div class="field"><label data-i18n="অগ্রাধিকার">অগ্রাধিকার</label>
+        <select id="tk_priority"><option value="normal" data-i18n="সাধারণ">সাধারণ</option><option value="high" data-i18n="উচ্চ">উচ্চ</option></select>
+      </div>
+      <div class="field"><label data-i18n="নোট">নোট</label><textarea id="tk_note"></textarea></div>
+    </form>
+    </div>
+  </div>
+</div>
+
+<!-- DOCUMENT MODAL -->
+<div class="overlay" id="docOverlay">
+  <div class="modal">
+    <div class="modalhead">
+      <h2 data-i18n="ডকুমেন্ট আপলোড">ডকুমেন্ট আপলোড</h2>
+      <div class="modalheadbtns">
+        <button type="button" class="btn plain small" id="docCancel" data-i18n="বাতিল">বাতিল</button>
+        <button type="submit" form="docForm" class="btn small" data-i18n="সংরক্ষণ করুন">সংরক্ষণ করুন</button>
+      </div>
+    </div>
+        <div class="modalbody">
+<form id="docForm">
+      <div class="field"><label data-i18n="সংশ্লিষ্ট মামলা *">সংশ্লিষ্ট মামলা *</label><select id="dc_case" required></select></div>
+      <div class="field"><label data-i18n="ডকুমেন্টের নাম *">ডকুমেন্টের নাম *</label><input type="text" id="dc_name" required></div>
+      <div class="row2">
+        <div class="field"><label data-i18n="ধরন">ধরন</label>
+          <select id="dc_type"><option value="pdf">PDF</option><option value="image" data-i18n="ছবি (JPG/PNG)">ছবি (JPG/PNG)</option><option value="doc" data-i18n="Word (DOC/DOCX)">Word (DOC/DOCX)</option><option value="other" data-i18n="অন্যান্য">অন্যান্য</option></select>
+        </div>
+        <div class="field"><label data-i18n="ডকুমেন্টের তারিখ">ডকুমেন্টের তারিখ</label><input type="date" id="dc_date"></div>
+      </div>
+      <div class="field"><label data-i18n="ফাইল বাছাই করুন (ঐচ্ছিক)">ফাইল বাছাই করুন (ঐচ্ছিক)</label><input type="file" id="dc_file"></div>
+      <div class="field"><label data-i18n="বিবরণ">বিবরণ</label><textarea id="dc_desc"></textarea></div>
+    </form>
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENT MODAL -->
+<div class="overlay" id="paymentOverlay">
+  <div class="modal">
+    <div class="modalhead">
+      <h2 data-i18n="পেমেন্ট / খরচ যোগ করুন">পেমেন্ট / খরচ যোগ করুন</h2>
+      <div class="modalheadbtns">
+        <button type="button" class="btn plain small" id="paymentCancel" data-i18n="বাতিল">বাতিল</button>
+        <button type="submit" form="paymentForm" class="btn small" data-i18n="সংরক্ষণ করুন">সংরক্ষণ করুন</button>
+      </div>
+    </div>
+        <div class="modalbody">
+<form id="paymentForm">
+      <div class="field"><label data-i18n="সংশ্লিষ্ট মামলা *">সংশ্লিষ্ট মামলা *</label><select id="pm_case" required></select></div>
+      <div class="row2">
+        <div class="field"><label data-i18n="ধরন">ধরন</label>
+          <select id="pm_type"><option value="payment" data-i18n="ক্লায়েন্ট থেকে প্রাপ্ত ফি">ক্লায়েন্ট থেকে প্রাপ্ত ফি</option><option value="expense" data-i18n="মামলার খরচ">মামলার খরচ</option><option value="court_fee" data-i18n="কোর্ট ফি">কোর্ট ফি</option></select>
+        </div>
+        <div class="field"><label data-i18n="পরিমাণ (টাকা) *">পরিমাণ (টাকা) *</label><input type="number" id="pm_amount" min="0" required></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label data-i18n="তারিখ">তারিখ</label><input type="date" id="pm_date"></div>
+        <div class="field"><label data-i18n="মাধ্যম">মাধ্যম</label><input type="text" id="pm_method" placeholder="নগদ / ব্যাংক / বিকাশ" data-i18n-ph="নগদ / ব্যাংক / বিকাশ"></div>
+      </div>
+      <div class="field"><label data-i18n="নোট">নোট</label><textarea id="pm_note"></textarea></div>
+    </form>
+    </div>
+  </div>
+</div>
+
+<!-- LINKED CASES MODAL (for client/lawyer detail) -->
+<div class="overlay" id="linkedOverlay">
+  <div class="modal" id="linkedModalBody"></div>
+</div>
+
+<script>
+/* =====================================================================
+   DATA LAYER
+   For now this persists to localStorage as a stand-in cloud database.
+   Every mutation funnels through save(); when the real backend/API is
+   ready, replace load()/save() with fetch() calls against API_URL and
+   keep every entity/id shape exactly as below — the whole UI is already
+   written against this normalized shape (Case -> Client/Lawyer/Court by
+   ID, Hearing/CaseEvent as its own append-only collection, etc).
+   ===================================================================== */
+const API_URL = ""; // TODO API: point this at the cloud backend when ready
+
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function plusDays(n){ const d=new Date(); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+function uid(p){ return p + Date.now() + Math.floor(Math.random()*1000); }
+function money(n){ n = Number(n)||0; return "৳" + n.toLocaleString("en-US"); }
+const bnMonth = ["জানুয়ারি","ফেব্রুয়ারি","মার্চ","এপ্রিল","মে","জুন","জুলাই","আগস্ট","সেপ্টেম্বর","অক্টোবর","নভেম্বর","ডিসেম্বর"];
+const enMonth = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const bnDow = ["র","স","ম","বু","বৃ","শু","শ"];
+const enDow = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+function fmtDate(iso){ if(!iso) return "—"; const d=new Date(iso+"T00:00:00");
+  const mn = LANG==="en" ? enMonth[d.getMonth()] : bnMonth[d.getMonth()];
+  return `${d.getDate()} ${mn}, ${d.getFullYear()}`; }
+function monthLabel(m){ return LANG==="en" ? enMonth[m] : bnMonth[m]; }
+function dowLabels(){ return LANG==="en" ? enDow : bnDow; }
+
+/* ================= I18N (বাংলা / English) ================= */
+let LANG = localStorage.getItem("lawyerDiary_lang") || "bn";
+const I18N = {"+ এই মামলার জন্য টাস্ক": "+ Task for this case", "+ কোর্ট যোগ করুন": "+ Add Court", "+ ডকুমেন্ট আপলোড": "+ Upload Document", "+ নতুন হিয়ারিং যোগ করুন": "+ Add New Hearing", "+ পেমেন্ট/খরচ যোগ করুন": "+ Add Payment/Expense", "+ যোগ": "+ Add", "CSV এক্সপোর্ট": "Export CSV", "Word (DOC/DOCX)": "Word (DOC/DOCX)", "অগ্রাধিকার": "Priority", "অথবা নির্দিষ্ট তারিখ দিয়ে খুঁজুন (হিয়ারিং)": "Or search by a specific date (hearing)", "অন্যান্য": "Other", "অভ্যন্তরীণ নোট": "Internal Note", "অসম্পন্ন টাস্ক": "Pending Tasks", "আইনজীবী": "Lawyer", "আইনজীবী তালিকা": "Lawyers", "আইনজীবীভিত্তিক মামলা": "Cases by Lawyer", "আগামীকাল": "Tomorrow", "আগামীকালের কজ লিস্ট": "Tomorrow's Cause List", "আজ": "Today", "আজকের কজ লিস্ট": "Today's Cause List", "আজকের হিয়ারিং": "Today's Hearings", "আদেশ": "Order", "আদেশ নম্বর": "Order Number", "আপনার ভূমিকা (ডেমো — ভবিষ্যতে API-ভিত্তিক ইউজার/রোল সিস্টেম যুক্ত হবে)": "Your Role (demo — an API-based user/role system will be added later)", "আপলোড": "Upload", "আর্কাইভ": "Archived", "ইউনিভার্সাল সার্চ": "Universal Search", "ইভেন্টের ধরন": "Event Type", "ইমেইল": "Email", "উচ্চ": "High", "উচ্চ অগ্রাধিকার": "High Priority", "এই মুহূর্তে সব তথ্য এই ব্রাউজারে সংরক্ষিত হচ্ছে। ক্লাউড API প্রস্তুত হলে এখানে সিঙ্ক অপশন যুক্ত হবে (নিচে API_URL দ্রষ্টব্য)।": "Right now all data is stored in this browser. A cloud sync option will appear here once the API is ready (see API_URL below).", "এই সপ্তাহ": "This Week", "এসোসিয়েট": "Associate", "কজ লিস্ট": "Cause List", "কারণ": "Reason", "কার্যক্রম": "Activity", "কেস নম্বর *": "Case Number *", "কেসভিত্তিক সারাংশ": "Summary by Case", "কেসের ধরন": "Case Type", "কোর্ট ফি": "Court Fee", "কোর্টভিত্তিক মামলার সংখ্যা": "Case Count by Court", "কোর্টের ধরন বাছাই করুন": "Select Court Type", "কোর্টের নাম": "Court Name", "কোর্টের নাম সেটআপ": "Court Name Setup", "ক্যালেন্ডার": "Calendar", "ক্লায়েন্ট": "Client", "ক্লায়েন্ট থেকে প্রাপ্ত ফি": "Fee Received from Client", "ক্লায়েন্টভিত্তিক মামলা": "Cases by Client", "খসড়া": "Draft", "খুঁজুন": "Search", "গুরুত্বপূর্ণ নোট": "Important Notes", "চলমান": "Pending", "চেম্বার": "Chamber", "চেম্বার / প্রতিষ্ঠানের তথ্য": "Chamber / Firm Information", "চেম্বার / প্রতিষ্ঠানের নাম": "Chamber / Firm Name", "ছবি (JPG/PNG)": "Image (JPG/PNG)", "জেলা": "District", "টাস্ক": "Tasks", "ট্যাগ (কমা দিয়ে আলাদা করুন)": "Tags (comma separated)", "ঠিকানা": "Address", "ডকুমেন্ট": "Documents", "ডকুমেন্ট আপলোড": "Upload Document", "ডকুমেন্টের তারিখ": "Document Date", "ডকুমেন্টের নাম *": "Document Name *", "ডিটেইল আদেশ": "Detailed Order", "ডেটা": "Data", "ড্যাশবোর্ড": "Dashboard", "তারিখ": "Date", "তারিখ *": "Date *", "থানা": "Thana", "দাখিলের তারিখ": "Filing Date", "দায়িত্বপ্রাপ্ত": "Assignee", "দ্রুত অ্যাকশন": "Quick Actions", "ধরন": "Type", "নতুন": "New", "নতুন আইনজীবী": "New Lawyer", "নতুন ক্লায়েন্ট": "New Client", "নতুন টাস্ক": "New Task", "নতুন মামলা": "New Case", "নতুন মামলা যোগ করুন": "Add New Case", "নতুন হিয়ারিং যোগ করুন": "Add New Hearing", "নাম *": "Name *", "নিজ পক্ষ": "Own Side", "নির্ধারিত তারিখ": "Due Date", "নির্ধারিত ফি (টাকা)": "Agreed Fee (Taka)", "নিষ্ক্রিয়": "Inactive", "নিষ্পত্তি": "Disposed", "নিষ্পত্তি নিশ্চিত করুন": "Confirm Disposal", "নিষ্পত্তি হওয়া মামলা": "Disposed Cases", "নিষ্পত্তির তারিখ": "Disposal Date", "নোট": "Note", "পরবর্তী তারিখ": "Next Date", "পরবর্তী তারিখ (থাকলে)": "Next Date (if any)", "পরিচালনা": "Manage", "পরিমাণ (টাকা) *": "Amount (Taka) *", "পুরো অ্যাপের ভাষা বদলাতে উপরের EN/বাং বাটনে চাপুন।": "Tap the EN/বাং button at the top to change the app's language.", "পেন্ডিং": "Pending", "পেন্ডিং/ওভারডিউ": "Pending/Overdue", "পেমেন্ট / খরচ যোগ করুন": "Add Payment / Expense", "পেমেন্ট/খরচ": "Payment/Expense", "প্রথম হিয়ারিং তথ্য": "First Hearing Details", "প্রধান": "Main", "প্রাপ্ত": "Received", "প্রিন্ট": "Print", "ফলাফল": "Outcome", "ফাইন্যান্স": "Finance", "ফাইল বাছাই করুন (ঐচ্ছিক)": "Choose File (optional)", "ফি": "Fee", "বকেয়া": "Due", "বকেয়া ফি রিপোর্ট": "Fee Due Report", "বাতিল": "Cancel", "বাদী পক্ষ": "Plaintiff's Side", "বাদী(গণ)": "Plaintiff(s)", "বার এনরোলমেন্ট নম্বর": "Bar Enrollment Number", "বিবরণ": "Description", "বিবাদী পক্ষ": "Defendant's Side", "বিবাদী(গণ)": "Defendant(s)", "বিভাগ": "Division", "বিশেষজ্ঞতা": "Specialization", "বেঞ্চ / বিচারক": "Bench / Judge", "ভাষা": "Language", "মাধ্যম": "Method", "মামলা": "Case", "মামলা নিষ্পত্তি করুন": "Dispose Case", "মামলার খরচ": "Case Expense", "মালিক / এডমিন": "Owner / Admin", "মুলতবির কারণ (যদি থাকে)": "Reason for Adjournment (if any)", "মোট ফি": "Total Fee", "মোট বকেয়া ফি": "Total Fee Due", "মোবাইল": "Mobile", "যুক্তিতর্ক": "Argument", "যে ধরন বাছাই করবেন, শুধু সেই অনুযায়ী তথ্য চাওয়া হবে। যোগ করার আগে মিল থাকা কোর্ট আছে কিনা যাচাই করা হয়।": "Only the fields relevant to the type you pick will be asked for. Before adding, it checks whether a matching court already exists.", "রায়": "Judgment", "রায়ের অপেক্ষায়": "Awaiting Judgment", "রিপোর্ট": "Reports", "লিখুন বা তারিখ বাছাই করুন — কেস, ক্লায়েন্ট, আইনজীবী ও কোর্ট সব জায়গায় খোঁজা হবে।": "Type or pick a date — search runs across cases, clients, lawyers and courts.", "লিগ্যাল অ্যাসিস্ট্যান্ট": "Legal Assistant", "শিরোনাম *": "Title *", "শুধু দেখার অনুমতি": "View Only", "সংরক্ষণ করুন": "Save", "সংরক্ষিত (Reserved)": "Reserved", "সংশ্লিষ্ট আইনজীবী(গণ)": "Associated Lawyer(s)", "সংশ্লিষ্ট মামলা (ঐচ্ছিক)": "Related Case (optional)", "সংশ্লিষ্ট মামলা *": "Related Case *", "সক্রিয়": "Active", "সক্রিয় মামলা": "Active Cases", "সক্রিয় মামলার তালিকা": "List of Active Cases", "সব": "All", "সব আসন্ন": "All Upcoming", "সময়": "Time", "সম্পন্ন": "Done", "সম্পূর্ণ ব্যাকআপ (JSON) ডাউনলোড": "Download Full Backup (JSON)", "সাক্ষ্য গ্রহণ": "Evidence", "সাধারণ": "Normal", "সাম্প্রতিক কার্যক্রম": "Recent Activity", "সাম্প্রতিক লেনদেন": "Recent Transactions", "সাল": "Year", "সেটিংস": "Settings", "স্টাফ": "Staff", "স্ট্যাটাস": "Status", "স্থগিত": "Stayed", "হিয়ারিং": "Hearings", "— আইনজীবী বাছাই —": "— Select Lawyer —", "— নির্বাচন করুন —": "— Select —", "— নেই —": "— None —", "‹ ফিরে যান": "‹ Back", "কেস নম্বর বা পক্ষের নাম দিয়ে খুঁজুন...": "Search by case number or party name...", "কেস নম্বর, পক্ষ, কোর্ট দিয়ে খুঁজুন...": "Search by case number, party, court...", "ডকুমেন্ট বা কেস নম্বর দিয়ে খুঁজুন...": "Search by document or case number...", "তালিকায় না থাকলে নতুন আইনজীবীর নাম": "New lawyer's name if not in the list", "তালিকায় না থাকলে লিখুন": "Type if not in the list", "নগদ / ব্যাংক / বিকাশ": "Cash / Bank / bKash", "নতুন ক্লায়েন্টের নাম": "New client's name", "নাম বা মোবাইল দিয়ে খুঁজুন...": "Search by name or mobile...", "নাম লিখুন": "Enter name", "নাম লিখে যোগ করুন": "Type name and add", "নাম, চেম্বার বা মোবাইল দিয়ে খুঁজুন...": "Search by name, chamber or mobile...", "মামলা নম্বর, পক্ষ, ক্লায়েন্ট, আইনজীবী, কোর্ট, থানা...": "Case number, party, client, lawyer, court, thana...", "মামলা, ক্লায়েন্ট, আইনজীবী, কোর্ট খুঁজুন...": "Search cases, clients, lawyers, courts...", "যেমনঃ জরুরি, আপোষযোগ্য": "e.g. Urgent, Settlable", "যেমনঃ মানি স্যুট": "e.g. Money Suit", "যেমনঃ হক ল চেম্বার্স": "e.g. Haque Law Chambers", "আজ হিয়ারিং": "Hearing Today", "আসন্ন": "Upcoming", "ওভারডিউ": "Overdue", "তারিখ নেই": "No date", "কোনো কেস পাওয়া যায়নি।": "No cases found.", "কোনো ক্লায়েন্ট নেই।": "No clients yet.", "কোনো আইনজীবী নেই।": "No lawyers yet.", "কোনো টাস্ক নেই।": "No tasks yet.", "কোনো ডকুমেন্ট নেই।": "No documents yet.", "কোনো লেনদেন নেই।": "No transactions yet.", "তথ্য নেই।": "No data.", "কোনো ফলাফল পাওয়া যায়নি।": "No results found.", "এখনো কোনো কার্যক্রম নেই।": "No activity yet.", "এখনো কোনো হিয়ারিং যোগ হয়নি।": "No hearings added yet.", "এই মামলার জন্য কোনো টাস্ক নেই।": "No tasks for this case.", "এই মামলায় কোনো ডকুমেন্ট নেই।": "No documents in this case.", "আইনজীবীভিত্তিক মামলার সংখ্যা": "Case Count by Lawyer", "ক্লায়েন্টভিত্তিক মামলার সংখ্যা": "Case Count by Client", "খরচ": "Expense", "টি মামলা": " case(s)", "ডাউনলোড": "Download", "যুক্ত মামলা": "Linked Cases", "তথ্য সম্পাদনা": "Edit Info", "বন্ধ করুন": "Close", "ক্লায়েন্ট সম্পাদনা": "Edit Client", "আইনজীবী সম্পাদনা": "Edit Lawyer", "মামলা সম্পাদনা করুন": "Edit Case", "সম্পাদনা": "Edit", "নিষ্পত্তি করুন": "Dispose", "স্থগিত করুন": "Mark Stayed", "সক্রিয় করুন": "Mark Active", "কোর্ট": "Court", "বাদী": "Plaintiff", "বিবাদী": "Defendant", "থানা / জেলা": "Thana / District", "নিষ্পত্তির তারিখ ": "Disposal Date", "মামলার সংখ্যা": "Case Count", "তথ্য সংরক্ষণ হয়েছে।": "Saved.", "সংরক্ষণ হয়েছে।": "Saved.", "এক্সপোর্ট করার মতো কোনো ডেটা নেই।": "No data to export.", "দয়া করে কোর্টের নাম সম্পূর্ণ করুন।": "Please complete the court name.", "এই নামের কোর্ট আগে থেকেই তালিকায় আছে।": "A court with this name is already in the list.", "এই কোর্ট মামলার সাথে যুক্ত থাকায় মুছে ফেলা যাবে না।": "This court is linked to cases and cannot be deleted.", "চেম্বার প্রোফাইল সেট করুন": "Set up chamber profile", "চেম্বার সেট করা হয়নি": "Chamber not set", "সেটিংস থেকে যোগ করুন": "Add it from Settings", "কত নম্বর আদালত": "Court Number", "আদালত নম্বর": "Court Number", "সম্পূর্ণ কোর্টের নাম লিখুন": "Type the full court name", "যেমনঃ বিশেষ জজ আদালত, ঢাকা": "e.g. Special Judge Court, Dhaka", "আদেশ নং ": "Order No. ", "মুলতবির কারণ: ": "Reason for adjournment: ", "পরবর্তী তারিখ: ": "Next date: ", "মামলা আপডেট হয়েছে: ": "Case updated: ", "নতুন হিয়ারিং যোগ হয়েছে: ": "New hearing added: ", "অন্য কোর্ট (তালিকায় না থাকলে নিজে লিখুন)": "Other Court (type it yourself if not listed)", "এই কোর্টের নাম নির্দিষ্ট — শুধু যোগ করুন।": "This court's name is fixed — just add it.", "তারিখের মামলা": "cases on this date", "পক্ষ": "Side", "বাদী-বিবাদীর নাম": "Plaintiff-Defendant Name", "কেস নম্বর": "Case Number", "মামলা নম্বর": "Case Number", "পক্ষগণ": "Parties", "বনাম": "vs", "সংরক্ষিত": "Reserved", "এই তারিখে কোনো হিয়ারিং নেই।": "No hearings on this date.", "টি": "", "থানা / যেখানে কোর্ট বসে": "Thana / where the court sits", "কোনো মামলা যুক্ত নেই।": "No linked cases.", "ক্লাউড সিঙ্ক (Google Sheet)": "Cloud Sync (Google Sheet)", "Google Apps Script দিয়ে বানানো ওয়েব অ্যাপের লিংক এখানে বসান — এরপর পিসি, মোবাইল সব জায়গা থেকে একই ডেটা দেখা ও সিঙ্ক হওয়া যাবে। প্রতিটি ডিভাইসে একবার করে এই লিংক বসাতে হবে।": "Paste the web app link from your Google Apps Script here — then the same data will show and sync on PC, mobile, everywhere. Paste this link once on each device.", "Apps Script ওয়েব অ্যাপ URL": "Apps Script Web App URL", "সংরক্ষণ ও সিঙ্ক করুন": "Save & Sync", "এখনই সিঙ্ক করুন": "Sync Now", "সিঙ্ক বন্ধ আছে": "Sync is off", "সিঙ্ক প্রস্তুত": "Sync ready", "সিঙ্ক হচ্ছে...": "Syncing...", "সিঙ্ক সম্পন্ন — ": "Synced — ", "সিঙ্ক ব্যর্থ — ইন্টারনেট সংযোগ পরীক্ষা করুন": "Sync failed — check your internet connection", "ক্লাউডে এখনো কোনো ডেটা নেই — একবার সংরক্ষণ করুন": "No data in the cloud yet — save once first", "ক্লাউড সিঙ্ক চালু না থাকলে সব তথ্য শুধু এই ব্রাউজারেই সংরক্ষিত থাকে। নিয়মিত ব্যাকআপ নিয়ে রাখা ভালো অভ্যাস।": "Without cloud sync turned on, all data stays only in this browser. Taking regular backups is a good habit."};
+function T(bnText){ return LANG==="en" ? (I18N[bnText] || bnText) : bnText; }
+Object.assign(I18N, {"এই কোর্টের নাম নির্দিষ্ট — শুধু যোগ করুন।": "This court's name is fixed — just add it.", "এই তারিখে কোনো হিয়ারিং নেই।": "No hearings on this date.", "কেস নম্বর": "Case Number", "কোনো মামলা যুক্ত নেই।": "No linked cases.", "টি": "", "তারিখের মামলা": "Cases", "থানা / যেখানে কোর্ট বসে": "Thana / where the court sits", "পক্ষ": "Side", "পক্ষগণ": "Parties", "বনাম": "vs", "বাদী-বিবাদীর নাম": "Plaintiff–Defendant Name", "মামলা নম্বর": "Case Number", "সংরক্ষিত": "Reserved"});
+
+function applyStaticI18n(){
+  document.documentElement.lang = LANG;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const key = el.getAttribute("data-i18n");
+    el.textContent = T(key);
+  });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el=>{
+    const key = el.getAttribute("data-i18n-ph");
+    el.placeholder = T(key);
+  });
+  const lt = document.getElementById("langToggle");
+  if(lt) lt.textContent = LANG==="bn" ? "EN" : "বাং";
+}
+function setLang(l){
+  LANG = l;
+  localStorage.setItem("lawyerDiary_lang", LANG);
+  applyStaticI18n();
+  refreshCourtTemplateDropdown();
+  renderCourtBuilderExtra();
+  renderCourtSettings();
+  refreshMasterDropdowns();
+  const activeSection = document.querySelector(".view.active");
+  const activeView = activeSection ? activeSection.id.replace("view-","") : "dashboard";
+  switchView(activeView);
+  if(activeView==="casedetail" && typeof currentDetailId!=="undefined" && currentDetailId) renderCaseDetail();
+}
+
+const STORE_KEY = "lawyerDiary_db_v2";
+
+function seedDB(){
+  const co1="co1", co2="co2", co3="co3", co4="co4";
+  const cl1="cl1", cl2="cl2";
+  const lw1="lw1", lw2="lw2", lw3="lw3", lw4="lw4";
+  const k1="k1", k2="k2", k3="k3", k4="k4", k5="k5";
+  return {
+    org: { name:"", role:"owner" },
+    courts: [
+      {id:co1, name:"যুগ্ম জেলা জজ আদালত, চট্টগ্রাম"},
+      {id:co2, name:"মহানগর হাকিম আদালত, চট্টগ্রাম"},
+      {id:co3, name:"হাইকোর্ট বিভাগ"},
+      {id:co4, name:"সহকারী জজ আদালত, চট্টগ্রাম"}
+    ],
+    clients: [
+      {id:cl1, name:"মোঃ কামরুল ইসলাম", mobile:"01711-000111", email:"", address:"", notes:""},
+      {id:cl2, name:"রহিমা বেগম", mobile:"01822-000222", email:"", address:"", notes:""}
+    ],
+    lawyers: [
+      {id:lw1, name:"অ্যাড. নাসরিন আক্তার", bar:"", mobile:"01711-222333", email:"", chamber:"চেম্বার ৩, কোর্ট বিল্ডিং", spec:"দেওয়ানী", active:"active"},
+      {id:lw2, name:"অ্যাড. রফিকুল হক", bar:"", mobile:"01711-222333", email:"", chamber:"চেম্বার ৩, কোর্ট বিল্ডিং", spec:"", active:"active"},
+      {id:lw3, name:"অ্যাড. সাইফুল ইসলাম", bar:"", mobile:"01822-333444", email:"", chamber:"চেম্বার ৭", spec:"ফৌজদারী", active:"active"},
+      {id:lw4, name:"অ্যাড. তানভীর হোসেন", bar:"", mobile:"", email:"", chamber:"", spec:"", active:"active"}
+    ],
+    cases: [
+      { id:k1, caseNumber:"মানি স্যুট ৪৫/২০২৬", caseType:"মানি স্যুট", caseYear:"২০২৬", filingDate:plusDays(-30),
+        courtId:co1, bench:"", division:"চট্টগ্রাম বিভাগ", district:"চট্টগ্রাম", thana:"কোতোয়ালী",
+        clientId:cl1, plaintiffs:[{id:uid("p"),name:"মোঃ কামরুল ইসলাম"}], defendants:[{id:uid("d"),name:"মেসার্স আলফা ট্রেডার্স"}],
+        lawyerLinks:[{lawyerId:lw1, side:"own"},{lawyerId:lw2, side:"defendant"}],
+        priority:"normal", status:"active", tags:[], notes:"", agreedFee:50000,
+        createdAt:plusDays(-30), updatedAt:todayISO(), lastHearingDate:plusDays(-30), nextHearingDate:todayISO(),
+        disposalDate:null, disposalReason:null },
+      { id:k2, caseNumber:"সি.আর. ১২০/২০২৫", caseType:"ফৌজদারী", caseYear:"২০২৫", filingDate:plusDays(-90),
+        courtId:co2, bench:"", division:"চট্টগ্রাম বিভাগ", district:"চট্টগ্রাম", thana:"পাঁচলাইশ",
+        clientId:"", plaintiffs:[{id:uid("p"),name:"রাষ্ট্র"}], defendants:[{id:uid("d"),name:"আসামী পক্ষ"}],
+        lawyerLinks:[{lawyerId:lw3, side:"own"}],
+        priority:"high", status:"active", tags:["জরুরি"], notes:"", agreedFee:0,
+        createdAt:plusDays(-90), updatedAt:todayISO(), lastHearingDate:plusDays(-1), nextHearingDate:todayISO(),
+        disposalDate:null, disposalReason:null },
+      { id:k3, caseNumber:"রিট পিটিশন ৮৯০/২০২৫", caseType:"রিট", caseYear:"২০২৫", filingDate:plusDays(-60),
+        courtId:co3, bench:"", division:"", district:"", thana:"",
+        clientId:cl1, plaintiffs:[{id:uid("p"),name:"মোঃ কামরুল ইসলাম"}], defendants:[{id:uid("d"),name:"সরকার পক্ষ"}],
+        lawyerLinks:[{lawyerId:lw1, side:"own"}],
+        priority:"normal", status:"active", tags:[], notes:"", agreedFee:80000,
+        createdAt:plusDays(-60), updatedAt:todayISO(), lastHearingDate:plusDays(-14), nextHearingDate:plusDays(3),
+        disposalDate:null, disposalReason:null },
+      { id:k4, caseNumber:"দেওয়ানী মোকদ্দমা ৩৩/২০২৪", caseType:"দেওয়ানী", caseYear:"২০২৪", filingDate:plusDays(-400),
+        courtId:co4, bench:"", division:"", district:"", thana:"বায়েজিদ",
+        clientId:cl2, plaintiffs:[{id:uid("p"),name:"রহিমা বেগম"}], defendants:[{id:uid("d"),name:"মোঃ শাহজাহান"}],
+        lawyerLinks:[{lawyerId:lw4, side:"own"}],
+        priority:"normal", status:"active", tags:[], notes:"", agreedFee:30000,
+        createdAt:plusDays(-400), updatedAt:todayISO(), lastHearingDate:plusDays(-9), nextHearingDate:plusDays(-9),
+        disposalDate:null, disposalReason:null },
+      { id:k5, caseNumber:"মানি স্যুট ১২/২০২৩", caseType:"মানি স্যুট", caseYear:"২০২৩", filingDate:plusDays(-500),
+        courtId:co1, bench:"", division:"", district:"", thana:"",
+        clientId:cl2, plaintiffs:[{id:uid("p"),name:"রহিমা বেগম"}], defendants:[{id:uid("d"),name:"জনাব করিম"}],
+        lawyerLinks:[{lawyerId:lw4, side:"own"}],
+        priority:"normal", status:"disposed", tags:[], notes:"", agreedFee:20000,
+        createdAt:plusDays(-500), updatedAt:plusDays(-88), lastHearingDate:plusDays(-90), nextHearingDate:null,
+        disposalDate:plusDays(-88), disposalReason:"আপোষে নিষ্পত্তি, ক্লায়েন্টের পক্ষে রায়।" }
+    ],
+    hearings: [
+      {id:uid("h"), caseId:k1, date:plusDays(-30), time:"", type:"hearing", orderNumber:"০১", shortOrder:"সমন জারি", detailOrder:"", outcome:"", adjourn:"", note:"", nextDate:todayISO(), createdAt:plusDays(-30)},
+      {id:uid("h"), caseId:k1, date:todayISO(), time:"", type:"hearing", orderNumber:"০২", shortOrder:"সাক্ষী জবানবন্দির জন্য ধার্য", detailOrder:"", outcome:"", adjourn:"", note:"", nextDate:"", createdAt:todayISO()},
+      {id:uid("h"), caseId:k2, date:plusDays(-1), time:"", type:"hearing", orderNumber:"০১", shortOrder:"চার্জ গঠনের শুনানি", detailOrder:"", outcome:"", adjourn:"", note:"", nextDate:todayISO(), createdAt:plusDays(-1)},
+      {id:uid("h"), caseId:k3, date:plusDays(-14), time:"", type:"hearing", orderNumber:"", shortOrder:"শুনানি মুলতবি", detailOrder:"", outcome:"", adjourn:"", note:"", nextDate:plusDays(3), createdAt:plusDays(-14)},
+      {id:uid("h"), caseId:k4, date:plusDays(-9), time:"", type:"hearing", orderNumber:"", shortOrder:"শুনানি সম্পন্ন", detailOrder:"", outcome:"", adjourn:"", note:"", nextDate:"", createdAt:plusDays(-9)},
+      {id:uid("h"), caseId:k5, date:plusDays(-90), time:"", type:"judgment", orderNumber:"", shortOrder:"রায় ঘোষিত", detailOrder:"", outcome:"", adjourn:"", note:"", nextDate:"", createdAt:plusDays(-90)}
+    ],
+    tasks: [
+      {id:uid("t"), caseId:k1, title:"সাক্ষীর তালিকা প্রস্তুত করা", assignee:"", due:todayISO(), priority:"high", status:"pending", note:""},
+      {id:uid("t"), caseId:k3, title:"রিট পিটিশনের কপি সংগ্রহ", assignee:"", due:plusDays(2), priority:"normal", status:"pending", note:""}
+    ],
+    documents: [],
+    payments: [
+      {id:uid("pm"), caseId:k1, type:"payment", amount:20000, date:plusDays(-25), method:"নগদ", note:"অগ্রিম ফি"}
+    ]
+  };
+}
+
+let db = null;
+function loadDB(){
+  const raw = localStorage.getItem(STORE_KEY);
+  if(raw){ try{ db = JSON.parse(raw); }catch(e){ db = seedDB(); } }
+  else db = seedDB();
+  if(!db.org) db.org = {name:"", role:"owner"};
+  if(!db.documents) db.documents = [];
+}
+function save(){
+  db._sync = { updatedAt: new Date().toISOString(), deviceId: getDeviceId() };
+  localStorage.setItem(STORE_KEY, JSON.stringify(db));
+  queueCloudPush();
+}
+loadDB();
+
+/* ================= CLOUD SYNC (Google Sheet via Apps Script) =================
+   Keeps the same single localStorage `db` object as the source of truth, but also
+   mirrors it to a Google Sheet through a Google Apps Script Web App, so opening
+   this file on another device (PC/mobile) pulls the same data instead of starting
+   from an empty local copy. Last-write-wins, compared by the `_sync.updatedAt` stamp
+   stored inside `db` itself. */
+const SYNC_URL_KEY = "lawyerDiary_syncUrl";
+const DEVICE_ID_KEY = "lawyerDiary_deviceId";
+function getDeviceId(){
+  let id = localStorage.getItem(DEVICE_ID_KEY);
+  if(!id){ id = uid("dev"); localStorage.setItem(DEVICE_ID_KEY, id); }
+  return id;
+}
+function getSyncUrl(){ return (localStorage.getItem(SYNC_URL_KEY)||"").trim(); }
+function setSyncUrlStored(url){ localStorage.setItem(SYNC_URL_KEY, url.trim()); }
+function fmtClock(d){ return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
+function setSyncStatus(text){ const el=document.getElementById("syncStatus"); if(el) el.textContent = text; }
+
+let syncPushTimer = null;
+function queueCloudPush(){
+  if(!getSyncUrl()) return;
+  clearTimeout(syncPushTimer);
+  syncPushTimer = setTimeout(pushToCloud, 1200);
+}
+async function pushToCloud(){
+  const url = getSyncUrl();
+  if(!url) return;
+  db._sync = { updatedAt: new Date().toISOString(), deviceId: getDeviceId() };
+  localStorage.setItem(STORE_KEY, JSON.stringify(db));
+  setSyncStatus(T("সিঙ্ক হচ্ছে..."));
+  try{
+    await fetch(url, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(db) });
+    setSyncStatus(T("সিঙ্ক সম্পন্ন — ") + fmtClock(new Date()));
+  }catch(e){
+    setSyncStatus(T("সিঙ্ক ব্যর্থ — ইন্টারনেট সংযোগ পরীক্ষা করুন"));
+  }
+}
+async function pullFromCloud(silent){
+  const url = getSyncUrl();
+  if(!url) return;
+  if(!silent) setSyncStatus(T("সিঙ্ক হচ্ছে..."));
+  try{
+    const res = await fetch(url, { method:"GET", cache:"no-store" });
+    const text = await res.text();
+    if(!text || text==="{}"){ if(!silent) setSyncStatus(T("ক্লাউডে এখনো কোনো ডেটা নেই — একবার সংরক্ষণ করুন")); return; }
+    const remote = JSON.parse(text);
+    const remoteTime = remote._sync && remote._sync.updatedAt ? new Date(remote._sync.updatedAt).getTime() : 0;
+    const localTime = db._sync && db._sync.updatedAt ? new Date(db._sync.updatedAt).getTime() : 0;
+    if(remoteTime > localTime){
+      db = remote;
+      if(!db.org) db.org = {name:"", role:"owner"};
+      if(!db.documents) db.documents = [];
+      localStorage.setItem(STORE_KEY, JSON.stringify(db));
+      refreshMasterDropdowns(); renderCourtSettings(); renderDashboard();
+      const activeSection = document.querySelector(".view.active");
+      const activeView = activeSection ? activeSection.id.replace("view-","") : "dashboard";
+      switchView(activeView);
+    }
+    setSyncStatus(T("সিঙ্ক সম্পন্ন — ") + fmtClock(new Date()));
+  }catch(e){
+    if(!silent) setSyncStatus(T("সিঙ্ক ব্যর্থ — ইন্টারনেট সংযোগ পরীক্ষা করুন"));
+  }
+}
+
+
+/* ================= LOOKUPS ================= */
+function courtName(id){ const c = db.courts.find(x=>x.id===id); return c ? c.name : "—"; }
+function clientName(id){ const c = db.clients.find(x=>x.id===id); return c ? c.name : ""; }
+function lawyerById(id){ return db.lawyers.find(x=>x.id===id); }
+function caseById(id){ return db.cases.find(x=>x.id===id); }
+function hearingsOf(caseId){ return db.hearings.filter(h=>h.caseId===caseId).sort((a,b)=> b.date.localeCompare(a.date)); }
+function tasksOf(caseId){ return db.tasks.filter(t=>t.caseId===caseId); }
+function docsOf(caseId){ return db.documents.filter(d=>d.caseId===caseId); }
+function paymentsOf(caseId){ return db.payments.filter(p=>p.caseId===caseId); }
+function partiesLine(k){
+  const p = (k.plaintiffs||[]).map(x=>x.name).join(", ") || "—";
+  const d = (k.defendants||[]).map(x=>x.name).join(", ") || "—";
+  return `${p} ${T("বনাম")} ${d}`;
+}
+function caseLawyersLine(k){
+  return (k.lawyerLinks||[]).map(l=>{ const lw = lawyerById(l.lawyerId); return lw ? lw.name : ""; }).filter(Boolean).join(", ") || "—";
+}
+
+/* dynamic status: base status stays as set (draft/active/stayed/reserved/judgment_awaited/disposed/archived);
+   for active-family cases, the badge shown reflects where nextHearingDate sits relative to today. */
+function dynamicBadge(k){
+  if(k.status==="disposed") return {label:T("নিষ্পত্তি"), cls:"grey"};
+  if(k.status==="archived") return {label:T("আর্কাইভ"), cls:"grey"};
+  if(k.status==="stayed") return {label:T("স্থগিত"), cls:"purple"};
+  if(k.status==="reserved") return {label:T("সংরক্ষিত"), cls:"blue"};
+  if(k.status==="judgment_awaited") return {label:T("রায়ের অপেক্ষায়"), cls:"blue"};
+  if(k.status==="draft") return {label:T("খসড়া"), cls:"grey"};
+  if(!k.nextHearingDate) return {label:T("তারিখ নেই"), cls:"grey"};
+  if(k.nextHearingDate === todayISO()) return {label:T("আজ হিয়ারিং"), cls:"teal"};
+  if(k.nextHearingDate === plusDays(1)) return {label:T("আগামীকাল"), cls:"teal"};
+  if(k.nextHearingDate < todayISO()) return {label:T("ওভারডিউ"), cls:"red"};
+  return {label:T("আসন্ন"), cls:"grey"};
+}
+function isOverdue(k){ return !["disposed","archived"].includes(k.status) && k.nextHearingDate && k.nextHearingDate < todayISO(); }
+function isHighPriority(k){ return k.priority==="high" && !["disposed","archived"].includes(k.status); }
+function activeCases(){ return db.cases.filter(k=> !["disposed","archived"].includes(k.status)); }
+function finTotals(caseId){
+  const fee = caseId ? (caseById(caseId).agreedFee||0) : db.cases.reduce((s,k)=>s+(k.agreedFee||0),0);
+  const pays = (caseId?paymentsOf(caseId):db.payments).filter(p=>p.type==="payment");
+  const exps = (caseId?paymentsOf(caseId):db.payments).filter(p=>p.type!=="payment");
+  const paid = pays.reduce((s,p)=>s+Number(p.amount||0),0);
+  const expense = exps.reduce((s,p)=>s+Number(p.amount||0),0);
+  return {fee, paid, due: Math.max(fee-paid,0), expense};
+}
+
+/* ================= NAV / VIEW SWITCHING ================= */
+function switchView(view){
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  document.getElementById("view-"+view).classList.add("active");
+  document.querySelectorAll(".navbtn").forEach(b=> b.classList.toggle("active", b.dataset.view===view));
+  document.querySelectorAll(".drawer .item").forEach(b=> b.classList.toggle("active", b.dataset.view===view));
+  document.getElementById("drawerOverlay").classList.remove("open");
+  window.scrollTo(0,0);
+  if(view==="cases") renderCases();
+  if(view==="calendar") renderCalendar();
+  if(view==="cause") renderCauseList();
+  if(view==="clients") renderClients();
+  if(view==="lawyers") renderLawyers();
+  if(view==="tasks") renderTasks();
+  if(view==="documents") renderDocs();
+  if(view==="finance") renderFinance();
+  if(view==="dashboard") renderDashboard();
+}
+document.querySelectorAll(".navbtn").forEach(b=> b.addEventListener("click", ()=> switchView(b.dataset.view)));
+document.querySelectorAll(".drawer .item").forEach(it=> it.addEventListener("click", ()=> switchView(it.dataset.view)));
+document.querySelectorAll("[data-nav]").forEach(b=> b.addEventListener("click", ()=> switchView(b.dataset.nav)));
+document.getElementById("btnMenu").addEventListener("click", ()=> document.getElementById("drawerOverlay").classList.add("open"));
+document.getElementById("brandHome").addEventListener("click", ()=> switchView("dashboard"));
+document.getElementById("drawerOverlay").addEventListener("click", e=>{ if(e.target.id==="drawerOverlay") e.currentTarget.classList.remove("open"); });
+
+document.getElementById("globalSearch").addEventListener("focus", ()=> switchView("search"));
+document.getElementById("globalSearch").addEventListener("input", function(){
+  document.getElementById("searchBox").value = this.value;
+  runUniversalSearch();
+});
+
+document.querySelectorAll(".statcard[data-go]").forEach(c=>{
+  c.addEventListener("click", ()=>{
+    const go = c.dataset.go;
+    if(go==="today"){ switchView("cause"); setCauseRange("today"); }
+    else if(go==="tomorrow"){ switchView("cause"); setCauseRange("tomorrow"); }
+    else if(go==="overdue"){ switchView("cases"); setCaseStatusFilter("overdue"); }
+    else if(go==="active"){ switchView("cases"); setCaseStatusFilter("active"); }
+    else if(go==="disposed"){ switchView("cases"); setCaseStatusFilter("disposed"); }
+    else if(go==="priority"){ switchView("cases"); setCaseStatusFilter("all"); document.getElementById("caseSearch").value=""; caseFilter.priorityOnly=true; renderCases(); }
+    else if(go==="finance") switchView("finance");
+    else if(go==="tasks") switchView("tasks");
+  });
+});
+
+/* ================= DASHBOARD ================= */
+function renderDashboard(){
+  const org = db.org;
+  document.getElementById("orgSub").textContent = org.name ? org.name : T("চেম্বার প্রোফাইল সেট করুন");
+  document.getElementById("drawerOrgName").textContent = org.name || T("চেম্বার সেট করা হয়নি");
+  const roleLabels = {owner:T("মালিক / এডমিন"), lawyer:T("আইনজীবী"), associate:T("এসোসিয়েট"), assistant:T("লিগ্যাল অ্যাসিস্ট্যান্ট"), staff:T("স্টাফ"), readonly:T("শুধু দেখার অনুমতি")};
+  document.getElementById("drawerOrgRole").textContent = roleLabels[org.role] || "";
+
+  const ac = activeCases();
+  document.getElementById("stToday").textContent = ac.filter(k=>k.nextHearingDate===todayISO()).length;
+  document.getElementById("stTomorrow").textContent = ac.filter(k=>k.nextHearingDate===plusDays(1)).length;
+  document.getElementById("stOverdue").textContent = ac.filter(isOverdue).length;
+  document.getElementById("stActive").textContent = ac.length;
+  document.getElementById("stDisposed").textContent = db.cases.filter(k=>k.status==="disposed").length;
+  document.getElementById("stPriority").textContent = ac.filter(isHighPriority).length;
+  const tot = finTotals(null);
+  document.getElementById("stDue").textContent = money(tot.due);
+  document.getElementById("stTasks").textContent = db.tasks.filter(t=>t.status!=="done").length;
+
+  // recent activity: last created/updated cases + last hearings, newest first
+  const events = [];
+  db.cases.forEach(k=> events.push({date:k.updatedAt||k.createdAt, text:`${T("মামলা আপডেট হয়েছে: ")}${k.caseNumber}`, id:k.id}));
+  db.hearings.forEach(h=> events.push({date:h.createdAt, text:`${T("নতুন হিয়ারিং যোগ হয়েছে: ")}${caseById(h.caseId)?caseById(h.caseId).caseNumber:""}`, id:h.caseId}));
+  events.sort((a,b)=> (b.date||"").localeCompare(a.date||""));
+  const box = document.getElementById("recentActivity");
+  const top = events.slice(0,6);
+  box.innerHTML = top.length ? top.map(e=>`<div class="listrow" data-open="${e.id}"><div><div class="name" style="font-size:13.5px; font-weight:500;">${e.text}</div><div class="role">${fmtDate(e.date)}</div></div></div>`).join("")
+    : `<div class="empty">${T("এখনো কোনো কার্যক্রম নেই।")}</div>`;
+  box.querySelectorAll("[data-open]").forEach(el=> el.addEventListener("click", ()=> openCaseDetail(el.dataset.open)));
+}
+
+/* ================= UNIVERSAL SEARCH ================= */
+function runUniversalSearch(){
+  const q = document.getElementById("searchBox").value.trim().toLowerCase();
+  const dq = document.getElementById("searchDateBox").value;
+  const box = document.getElementById("searchResults");
+  if(!q && !dq){ box.innerHTML = `<div class="empty">${T("লিখুন বা তারিখ বাছাই করুন — কেস, ক্লায়েন্ট, আইনজীবী ও কোর্ট সব জায়গায় খোঁজা হবে।")}</div>`; return; }
+
+  let matchedCaseIds = new Set();
+  if(dq){
+    db.hearings.filter(h=>h.date===dq).forEach(h=> matchedCaseIds.add(h.caseId));
+    db.cases.filter(k=>k.nextHearingDate===dq).forEach(k=> matchedCaseIds.add(k.id));
+  }
+  let caseMatches = db.cases.filter(k=>{
+    if(dq && !matchedCaseIds.has(k.id)) return false;
+    if(!q) return true;
+    const hay = `${k.caseNumber} ${k.caseType} ${k.caseYear} ${courtName(k.courtId)} ${k.thana} ${k.division} ${k.district}
+      ${(k.plaintiffs||[]).map(p=>p.name).join(" ")} ${(k.defendants||[]).map(d=>d.name).join(" ")}
+      ${clientName(k.clientId)} ${caseLawyersLine(k)} ${dynamicBadge(k).label} ${(k.tags||[]).join(" ")}`.toLowerCase();
+    return hay.includes(q);
+  });
+  let clientMatches = q ? db.clients.filter(c=> `${c.name} ${c.mobile}`.toLowerCase().includes(q)) : [];
+  let lawyerMatches = q ? db.lawyers.filter(l=> `${l.name} ${l.chamber} ${l.mobile}`.toLowerCase().includes(q)) : [];
+  let courtMatches = q ? db.courts.filter(c=> c.name.toLowerCase().includes(q)) : [];
+
+  let html = "";
+  if(caseMatches.length){
+    html += `<div class="searchgroup"><h3>${T("মামলা")} (${caseMatches.length})</h3>` +
+      caseMatches.map(k=>caseCardHTML(k)).join("") + `</div>`;
+  }
+  if(clientMatches.length){
+    html += `<div class="searchgroup"><h3>${T("ক্লায়েন্ট")} (${clientMatches.length})</h3>` +
+      clientMatches.map(c=>`<div class="listrow" data-client="${c.id}"><div><div class="name">${c.name}</div><div class="role">${c.mobile||""}</div></div></div>`).join("") + `</div>`;
+  }
+  if(lawyerMatches.length){
+    html += `<div class="searchgroup"><h3>${T("আইনজীবী")} (${lawyerMatches.length})</h3>` +
+      lawyerMatches.map(l=>`<div class="listrow" data-lawyer="${l.id}"><div><div class="name">${l.name}</div><div class="role">${l.chamber||""}</div></div></div>`).join("") + `</div>`;
+  }
+  if(courtMatches.length){
+    html += `<div class="searchgroup"><h3>${T("কোর্ট")} (${courtMatches.length})</h3>` +
+      courtMatches.map(c=>`<div class="listrow"><div><div class="name">${c.name}</div></div></div>`).join("") + `</div>`;
+  }
+  if(!html) html = `<div class="empty">${T("কোনো ফলাফল পাওয়া যায়নি।")}</div>`;
+  box.innerHTML = html;
+  box.querySelectorAll(".card[data-id]").forEach(el=> el.addEventListener("click", ()=> openCaseDetail(el.dataset.id)));
+  box.querySelectorAll("[data-client]").forEach(el=> el.addEventListener("click", ()=> openLinkedCases("client", el.dataset.client)));
+  box.querySelectorAll("[data-lawyer]").forEach(el=> el.addEventListener("click", ()=> openLinkedCases("lawyer", el.dataset.lawyer)));
+}
+document.getElementById("searchBox").addEventListener("input", runUniversalSearch);
+document.getElementById("searchDateBox").addEventListener("change", runUniversalSearch);
+
+/* ================= CASES LIST ================= */
+let caseFilter = { status:"all", priorityOnly:false };
+function setCaseStatusFilter(s){
+  caseFilter.status = s; caseFilter.priorityOnly = false;
+  document.querySelectorAll("#caseStatusPills .pill").forEach(p=> p.classList.toggle("active", p.dataset.status===s));
+  renderCases();
+}
+document.querySelectorAll("#caseStatusPills .pill").forEach(p=> p.addEventListener("click", ()=> setCaseStatusFilter(p.dataset.status)));
+document.getElementById("caseSearch").addEventListener("input", renderCases);
+
+function caseMatchesStatusFilter(k){
+  const s = caseFilter.status;
+  if(s==="all") return true;
+  if(s==="active") return !["disposed","archived"].includes(k.status);
+  if(s==="today") return k.nextHearingDate===todayISO() && !["disposed","archived"].includes(k.status);
+  if(s==="overdue") return isOverdue(k);
+  if(s==="stayed") return k.status==="stayed";
+  if(s==="judgment_awaited") return k.status==="judgment_awaited";
+  if(s==="disposed") return k.status==="disposed";
+  if(s==="archived") return k.status==="archived";
+  return true;
+}
+function caseCardHTML(k){
+  const b = dynamicBadge(k);
+  return `<div class="card" data-id="${k.id}">
+    <div class="top"><span class="casenum">${k.caseNumber}</span><span class="datebadge">${k.nextHearingDate?fmtDate(k.nextHearingDate):""}</span></div>
+    <div class="court">${courtName(k.courtId)}</div>
+    <div class="parties">${partiesLine(k)}</div>
+    <div class="order">${caseLawyersLine(k)}</div>
+    <div class="metarow">
+      <span class="badge ${b.cls}">${b.label}</span>
+      ${k.priority==="high" ? `<span class="badge red">${T("অগ্রাধিকার")}</span>` : ''}
+      ${k.caseType ? `<span class="badge grey">${k.caseType}</span>` : ''}
+    </div>
+  </div>`;
+}
+function renderCases(){
+  const q = document.getElementById("caseSearch").value.trim().toLowerCase();
+  let list = db.cases.filter(caseMatchesStatusFilter);
+  if(caseFilter.priorityOnly) list = list.filter(isHighPriority);
+  if(q) list = list.filter(k => `${k.caseNumber} ${partiesLine(k)} ${courtName(k.courtId)}`.toLowerCase().includes(q));
+  list = list.slice().sort((a,b)=> (a.nextHearingDate||"9999").localeCompare(b.nextHearingDate||"9999"));
+  document.getElementById("casesCount").textContent = list.length + T("টি");
+  const body = document.getElementById("casesBody");
+  body.innerHTML = list.length ? list.map(caseCardHTML).join("") : `<div class="empty">${T("কোনো কেস পাওয়া যায়নি।")}</div>`;
+  body.querySelectorAll(".card").forEach(el=> el.addEventListener("click", ()=> openCaseDetail(el.dataset.id)));
+}
+
+/* ================= CALENDAR ================= */
+let calMonth = new Date().getMonth(), calYear = new Date().getFullYear();
+function renderCalendar(){
+  document.getElementById("calLabel").textContent = `${monthLabel(calMonth)} ${calYear}`;
+  const grid = document.getElementById("calGrid");
+  const first = new Date(calYear, calMonth, 1);
+  const startDow = first.getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const counts = {}, overdueDates = {};
+  activeCases().forEach(k=>{
+    if(k.nextHearingDate){ counts[k.nextHearingDate] = (counts[k.nextHearingDate]||0)+1; if(isOverdue(k)) overdueDates[k.nextHearingDate]=true; }
+  });
+  let html = dowLabels().map(d=>`<div class="dow">${d}</div>`).join("");
+  for(let i=0;i<startDow;i++) html += `<div></div>`;
+  for(let day=1; day<=daysInMonth; day++){
+    const iso = `${calYear}-${String(calMonth+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+    const isToday = iso===todayISO(); const cnt = counts[iso]||0;
+    html += `<div class="cal-cell ${isToday?"today":""} ${cnt?"has-cases clickable":""} ${overdueDates[iso]?"overdue":""}" data-count="${cnt}" data-date="${iso}">${day}</div>`;
+  }
+  grid.innerHTML = html;
+  grid.querySelectorAll(".cal-cell.clickable").forEach(cell=> cell.addEventListener("click", ()=> openDayPanel(cell.dataset.date)));
+}
+function openDayPanel(iso){
+  const list = activeCases().filter(k=>k.nextHearingDate===iso);
+  document.getElementById("dayPanel").style.display = "block";
+  document.getElementById("dayPanelTitle").textContent = fmtDate(iso) + " " + T("তারিখের মামলা");
+  document.getElementById("dayPanelBody").innerHTML = list.length ? list.map(caseCardHTML).join("") : `<div class="empty">${T("এই তারিখে কোনো হিয়ারিং নেই।")}</div>`;
+  document.getElementById("dayPanelBody").querySelectorAll(".card").forEach(el=> el.addEventListener("click", ()=> openCaseDetail(el.dataset.id)));
+}
+document.getElementById("calPrev").addEventListener("click", ()=>{ calMonth--; if(calMonth<0){calMonth=11; calYear--;} renderCalendar(); });
+document.getElementById("calNext").addEventListener("click", ()=>{ calMonth++; if(calMonth>11){calMonth=0; calYear++;} renderCalendar(); });
+
+/* ================= CAUSE LIST ================= */
+let causeRange = "today";
+function setCauseRange(r){
+  causeRange = r;
+  document.querySelectorAll("#view-cause .pill[data-range]").forEach(p=> p.classList.toggle("active", p.dataset.range===r));
+  renderCauseList();
+}
+document.querySelectorAll("#view-cause .pill[data-range]").forEach(p=> p.addEventListener("click", ()=> setCauseRange(p.dataset.range)));
+document.getElementById("causeSearch").addEventListener("input", renderCauseList);
+/* Sort same-date cases so the court with the most cases on that date comes first,
+   and all cases of the same court stay grouped together (serial-wise). */
+function sortByCourtFrequency(cases){
+  const counts = {};
+  cases.forEach(k=> counts[k.courtId] = (counts[k.courtId]||0)+1);
+  return cases.slice().sort((a,b)=>{
+    const diff = (counts[b.courtId]||0) - (counts[a.courtId]||0);
+    if(diff !== 0) return diff;
+    const cn = courtName(a.courtId).localeCompare(courtName(b.courtId));
+    if(cn !== 0) return cn;
+    return (a.caseNumber||"").localeCompare(b.caseNumber||"");
+  });
+}
+function getFilteredCauseList(){
+  const q = document.getElementById("causeSearch").value.trim().toLowerCase();
+  let list = activeCases().filter(k=>k.nextHearingDate);
+  if(causeRange==="today") list = list.filter(k=>k.nextHearingDate===todayISO());
+  else if(causeRange==="tomorrow") list = list.filter(k=>k.nextHearingDate===plusDays(1));
+  else if(causeRange==="week") list = list.filter(k=>k.nextHearingDate>=todayISO() && k.nextHearingDate<=plusDays(7));
+  else if(causeRange==="all") list = list.filter(k=>k.nextHearingDate>=todayISO());
+  if(q) list = list.filter(k=>`${k.caseNumber} ${partiesLine(k)}`.toLowerCase().includes(q));
+  return list;
+}
+function renderCauseList(){
+  const list = getFilteredCauseList();
+  const byDate = {};
+  list.forEach(k=> (byDate[k.nextHearingDate] = byDate[k.nextHearingDate]||[]).push(k));
+  const dates = Object.keys(byDate).sort();
+  const body = document.getElementById("causeBody");
+  if(!dates.length){ body.innerHTML = `<div class="empty">${T("কোনো কেস পাওয়া যায়নি।")}</div>`; return; }
+  body.innerHTML = dates.map(d=>{
+    const group = sortByCourtFrequency(byDate[d]);
+    return `<div class="datehead">${fmtDate(d)}</div>` + group.map(caseCardHTML).join("");
+  }).join("");
+  body.querySelectorAll(".card").forEach(el=> el.addEventListener("click", ()=> openCaseDetail(el.dataset.id)));
+}
+document.getElementById("btnPrintCause").addEventListener("click", ()=>{
+  printCauseList();
+});
+function printCauseList(){
+  const list = getFilteredCauseList();
+  if(!list.length){ alert(T("কোনো কেস পাওয়া যায়নি।")); return; }
+  const byDate = {};
+  list.forEach(k=> (byDate[k.nextHearingDate] = byDate[k.nextHearingDate]||[]).push(k));
+  const dates = Object.keys(byDate).sort();
+  let rows = "";
+  dates.forEach(d=>{
+    const group = sortByCourtFrequency(byDate[d]);
+    group.forEach((k,i)=>{
+      const act = lastActivity(k) || "—";
+      rows += `<tr>${i===0?`<td rowspan="${group.length}">${fmtDate(d)}</td>`:""}<td>${k.caseNumber}</td><td>${courtName(k.courtId)}</td><td>${partiesLine(k)}</td><td>${caseSidesLine(k)}</td><td>${act}</td></tr>`;
+    });
+  });
+  const table = `<table class="causetable"><thead><tr>
+    <th>${T("তারিখ")}</th><th>${T("মামলা নম্বর")}</th><th>${T("কোর্টের নাম")}</th><th>${T("বাদী-বিবাদীর নাম")}</th><th>${T("পক্ষ")}</th><th>${T("কার্যক্রম")}</th>
+  </tr></thead><tbody>${rows}</tbody></table>`;
+  printHTML(T("কজ লিস্ট"), table, true);
+}
+function printHTML(title, innerHtml, isTable){
+  const w = window.open("", "_blank");
+  w.document.write(`<html><head><title>${title}</title><meta charset="utf-8">
+    <style>body{font-family:sans-serif; padding:20px;} .card,.listrow{border:1px solid #ccc;border-radius:8px;padding:10px;margin-bottom:8px;}
+    .badge{display:inline-block;padding:2px 8px;border:1px solid #999;border-radius:10px;font-size:11px;margin-right:4px;}
+    .datehead{font-weight:bold;margin:12px 0 6px;} h1{font-size:18px;}
+    table.causetable{border-collapse:collapse; width:100%; font-size:12.5px;}
+    table.causetable th, table.causetable td{border:1px solid #999; padding:6px 8px; text-align:left; vertical-align:top;}
+    table.causetable th{background:#eee;}
+    @media print{ table.causetable{ font-size:11px; } }</style></head>
+    <body><h1>${title}</h1>${innerHtml}</body></html>`);
+  w.document.close(); w.focus(); setTimeout(()=>w.print(), 300);
+}
+
+/* ================= CLIENTS ================= */
+let editClientId = null;
+function renderClients(){
+  const q = document.getElementById("clientSearch").value.trim().toLowerCase();
+  let list = db.clients.filter(c=> `${c.name} ${c.mobile}`.toLowerCase().includes(q));
+  const body = document.getElementById("clientsBody");
+  body.innerHTML = list.length ? list.map(c=>{
+    const n = db.cases.filter(k=>k.clientId===c.id).length;
+    return `<div class="listrow" data-id="${c.id}"><div><div class="name">${c.name}</div><div class="role">${n}${T("টি মামলা")}</div></div><div class="right"><div class="phone">${c.mobile||""}</div></div></div>`;
+  }).join("") : `<div class="empty">${T("কোনো ক্লায়েন্ট নেই।")}</div>`;
+  body.querySelectorAll(".listrow").forEach(el=> el.addEventListener("click", ()=> openLinkedCases("client", el.dataset.id)));
+}
+document.getElementById("clientSearch").addEventListener("input", renderClients);
+document.getElementById("btnAddClient").addEventListener("click", ()=>{
+  editClientId=null; document.getElementById("clientModalTitle").textContent=T("নতুন ক্লায়েন্ট");
+  document.getElementById("clientForm").reset(); document.getElementById("clientOverlay").classList.add("open");
+});
+document.getElementById("clientCancel").addEventListener("click", ()=> document.getElementById("clientOverlay").classList.remove("open"));
+document.getElementById("clientForm").addEventListener("submit", e=>{
+  e.preventDefault();
+  const obj = { id: editClientId||uid("cl"), name:cl_name.value.trim(), mobile:cl_mobile.value.trim(), email:cl_email.value.trim(), address:cl_address.value.trim(), notes:cl_notes.value.trim() };
+  if(editClientId){ const i=db.clients.findIndex(x=>x.id===editClientId); db.clients[i]=obj; }
+  else db.clients.push(obj);
+  save(); refreshMasterDropdowns(); document.getElementById("clientOverlay").classList.remove("open"); renderClients();
+});
+
+/* ================= LAWYERS ================= */
+let editLawyerId = null;
+function renderLawyers(){
+  const q = document.getElementById("lawyerSearch").value.trim().toLowerCase();
+  let list = db.lawyers.filter(l=> `${l.name} ${l.chamber} ${l.mobile}`.toLowerCase().includes(q));
+  const body = document.getElementById("lawyersBody");
+  body.innerHTML = list.length ? list.map(l=>{
+    const n = db.cases.filter(k=>(k.lawyerLinks||[]).some(ll=>ll.lawyerId===l.id)).length;
+    return `<div class="listrow" data-id="${l.id}"><div><div class="name">${l.name}</div><div class="role">${l.chamber||""} · ${n}${T("টি মামলা")}</div></div><div class="right"><div class="phone">${l.mobile||""}</div></div></div>`;
+  }).join("") : `<div class="empty">${T("কোনো আইনজীবী নেই।")}</div>`;
+  body.querySelectorAll(".listrow").forEach(el=> el.addEventListener("click", ()=> openLinkedCases("lawyer", el.dataset.id)));
+}
+document.getElementById("lawyerSearch").addEventListener("input", renderLawyers);
+document.getElementById("btnAddLawyer").addEventListener("click", ()=>{
+  editLawyerId=null; document.getElementById("lawyerModalTitle").textContent=T("নতুন আইনজীবী");
+  document.getElementById("lawyerForm").reset(); document.getElementById("lawyerOverlay").classList.add("open");
+});
+document.getElementById("lawyerCancel").addEventListener("click", ()=> document.getElementById("lawyerOverlay").classList.remove("open"));
+document.getElementById("lawyerForm").addEventListener("submit", e=>{
+  e.preventDefault();
+  const obj = { id: editLawyerId||uid("lw"), name:lw_name.value.trim(), bar:lw_bar.value.trim(), mobile:lw_mobile.value.trim(),
+    email:lw_email.value.trim(), chamber:lw_chamber.value.trim(), spec:lw_spec.value.trim(), active:lw_active.value, address:lw_address.value.trim() };
+  if(editLawyerId){ const i=db.lawyers.findIndex(x=>x.id===editLawyerId); db.lawyers[i]=obj; }
+  else db.lawyers.push(obj);
+  save(); refreshMasterDropdowns(); document.getElementById("lawyerOverlay").classList.remove("open"); renderLawyers();
+});
+
+/* Linked-cases modal, shared by client & lawyer rows */
+function openLinkedCases(kind, id){
+  const person = kind==="client" ? db.clients.find(x=>x.id===id) : db.lawyers.find(x=>x.id===id);
+  if(!person) return;
+  const cases = kind==="client"
+    ? db.cases.filter(k=>k.clientId===id)
+    : db.cases.filter(k=>(k.lawyerLinks||[]).some(ll=>ll.lawyerId===id));
+  const modal = document.getElementById("linkedModalBody");
+  modal.innerHTML = `
+    <div class="modalhead">
+      <h2>${person.name}</h2>
+      <div class="modalheadbtns">
+        <button type="button" class="btn plain small" id="linkedCloseBtn">${T("বন্ধ করুন")}</button>
+        <button type="button" class="btn small" id="linkedEditBtn">${T("তথ্য সম্পাদনা")}</button>
+      </div>
+    </div>
+    <div class="modalbody">
+    ${person.mobile?`<div class="proprow"><span class="k">${T("মোবাইল")}</span><span class="v">${person.mobile}</span></div>`:""}
+    ${person.chamber?`<div class="proprow"><span class="k">${T("চেম্বার")}</span><span class="v">${person.chamber}</span></div>`:""}
+    ${person.email?`<div class="proprow"><span class="k">${T("ইমেইল")}</span><span class="v">${person.email}</span></div>`:""}
+    ${person.address?`<div class="proprow"><span class="k">${T("ঠিকানা")}</span><span class="v">${person.address}</span></div>`:""}
+    ${person.notes?`<div class="proprow"><span class="k">${T("নোট")}</span><span class="v">${person.notes}</span></div>`:""}
+    <hr class="sep">
+    <div class="section-title" style="margin-top:0;">${T("যুক্ত মামলা")} (${cases.length})</div>
+    ${cases.length? cases.map(caseCardHTML).join("") : `<div class="empty">${T("কোনো মামলা যুক্ত নেই।")}</div>`}
+    </div>`;
+  modal.querySelectorAll(".card").forEach(el=> el.addEventListener("click", ()=>{ document.getElementById("linkedOverlay").classList.remove("open"); openCaseDetail(el.dataset.id); }));
+  document.getElementById("linkedCloseBtn").addEventListener("click", ()=> document.getElementById("linkedOverlay").classList.remove("open"));
+  document.getElementById("linkedEditBtn").addEventListener("click", ()=>{
+    document.getElementById("linkedOverlay").classList.remove("open");
+    if(kind==="client"){
+      editClientId=id; document.getElementById("clientModalTitle").textContent=T("ক্লায়েন্ট সম্পাদনা");
+      cl_name.value=person.name; cl_mobile.value=person.mobile||""; cl_email.value=person.email||""; cl_address.value=person.address||""; cl_notes.value=person.notes||"";
+      document.getElementById("clientOverlay").classList.add("open");
+    } else {
+      editLawyerId=id; document.getElementById("lawyerModalTitle").textContent=T("আইনজীবী সম্পাদনা");
+      lw_name.value=person.name; lw_bar.value=person.bar||""; lw_mobile.value=person.mobile||""; lw_email.value=person.email||"";
+      lw_chamber.value=person.chamber||""; lw_spec.value=person.spec||""; lw_active.value=person.active||"active"; lw_address.value=person.address||"";
+      document.getElementById("lawyerOverlay").classList.add("open");
+    }
+  });
+  document.getElementById("linkedOverlay").classList.add("open");
+}
+
+/* ================= TASKS ================= */
+let taskFilter = "pending";
+document.querySelectorAll("#taskPills .pill").forEach(p=> p.addEventListener("click", ()=>{
+  taskFilter = p.dataset.tf;
+  document.querySelectorAll("#taskPills .pill").forEach(x=>x.classList.toggle("active", x===p));
+  renderTasks();
+}));
+function renderTasks(){
+  let list = db.tasks.slice();
+  if(taskFilter==="pending") list = list.filter(t=>t.status!=="done");
+  else if(taskFilter==="done") list = list.filter(t=>t.status==="done");
+  list.sort((a,b)=> (a.due||"9999").localeCompare(b.due||"9999"));
+  const body = document.getElementById("tasksBody");
+  body.innerHTML = list.length ? list.map(t=>{
+    const k = t.caseId ? caseById(t.caseId) : null;
+    return `<div class="card" data-id="${t.id}" style="cursor:default;">
+      <div class="taskrow">
+        <div class="chk ${t.status==='done'?'done':''}" data-toggle="${t.id}">✓</div>
+        <div class="body">
+          <div class="ttitle ${t.status==='done'?'done':''}">${t.title}</div>
+          <div class="tmeta">${k?k.caseNumber+' · ':''}${t.assignee?t.assignee+' · ':''}${t.due?fmtDate(t.due):T("তারিখ নেই")}${t.priority==='high'?' · '+T("উচ্চ অগ্রাধিকার"):''}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join("") : `<div class="empty">${T("কোনো টাস্ক নেই।")}</div>`;
+  body.querySelectorAll("[data-toggle]").forEach(el=> el.addEventListener("click", (ev)=>{
+    ev.stopPropagation();
+    const t = db.tasks.find(x=>x.id===el.dataset.toggle);
+    t.status = t.status==="done" ? "pending" : "done";
+    save(); renderTasks(); renderDashboard();
+  }));
+}
+function openTaskModal(presetCaseId){
+  refreshMasterDropdowns();
+  document.getElementById("taskForm").reset();
+  document.getElementById("tk_case").value = presetCaseId||"";
+  document.getElementById("taskOverlay").classList.add("open");
+}
+document.getElementById("btnAddTask").addEventListener("click", ()=> openTaskModal(null));
+document.getElementById("taskCancel").addEventListener("click", ()=> document.getElementById("taskOverlay").classList.remove("open"));
+document.getElementById("taskForm").addEventListener("submit", e=>{
+  e.preventDefault();
+  db.tasks.push({ id:uid("t"), caseId: tk_case.value||null, title:tk_title.value.trim(), assignee:tk_assignee.value.trim(),
+    due:tk_due.value, priority:tk_priority.value, status:"pending", note:tk_note.value.trim() });
+  save(); document.getElementById("taskOverlay").classList.remove("open");
+  renderTasks(); renderDashboard();
+  if(currentDetailId) renderDetailTasks();
+});
+
+/* ================= DOCUMENTS ================= */
+function renderDocs(){
+  const q = document.getElementById("docSearch").value.trim().toLowerCase();
+  let list = db.documents.filter(d=>{ const k=caseById(d.caseId); return `${d.name} ${k?k.caseNumber:''}`.toLowerCase().includes(q); });
+  list.sort((a,b)=> (b.uploadDate||"").localeCompare(a.uploadDate||""));
+  const body = document.getElementById("docsBody");
+  body.innerHTML = list.length ? list.map(d=>{
+    const k = caseById(d.caseId);
+    return `<div class="listrow docrow" data-id="${d.id}"><div><div class="dname">${d.name}</div><div class="dmeta">${k?k.caseNumber:''} · ${d.type} · ${fmtDate(d.date||d.uploadDate)}</div></div>
+      ${d.dataUrl?`<a href="${d.dataUrl}" download="${d.name}" class="iconlink" onclick="event.stopPropagation()">${T("ডাউনলোড")}</a>`:''}</div>`;
+  }).join("") : `<div class="empty">${T("কোনো ডকুমেন্ট নেই।")}</div>`;
+  body.querySelectorAll(".listrow").forEach(el=> el.addEventListener("click", ()=>{ const d=db.documents.find(x=>x.id===el.dataset.id); if(d) openCaseDetail(d.caseId,'docs'); }));
+}
+document.getElementById("docSearch").addEventListener("input", renderDocs);
+function openDocModal(presetCaseId){
+  refreshMasterDropdowns();
+  document.getElementById("docForm").reset();
+  if(presetCaseId) document.getElementById("dc_case").value = presetCaseId;
+  document.getElementById("dc_date").value = todayISO();
+  document.getElementById("docOverlay").classList.add("open");
+}
+document.getElementById("btnAddDoc").addEventListener("click", ()=> openDocModal(null));
+document.getElementById("docCancel").addEventListener("click", ()=> document.getElementById("docOverlay").classList.remove("open"));
+document.getElementById("docForm").addEventListener("submit", e=>{
+  e.preventDefault();
+  const file = dc_file.files[0];
+  const finishSave = (dataUrl)=>{
+    db.documents.push({ id:uid("doc"), caseId:dc_case.value, name:dc_name.value.trim(), type:dc_type.value,
+      date:dc_date.value, description:dc_desc.value.trim(), uploadDate:todayISO(), dataUrl:dataUrl||null });
+    save(); document.getElementById("docOverlay").classList.remove("open");
+    renderDocs(); if(currentDetailId) renderDetailDocs();
+  };
+  if(file && file.size < 3*1024*1024){ const r=new FileReader(); r.onload=()=>finishSave(r.result); r.readAsDataURL(file); }
+  else finishSave(null);
+});
+
+/* ================= FINANCE ================= */
+function renderFinance(){
+  const tot = finTotals(null);
+  document.getElementById("finFee").textContent = money(tot.fee);
+  document.getElementById("finPaid").textContent = money(tot.paid);
+  document.getElementById("finDue").textContent = money(tot.due);
+  const tbody = document.getElementById("financeTableBody");
+  tbody.innerHTML = db.cases.map(k=>{
+    const t = finTotals(k.id);
+    return `<tr data-id="${k.id}"><td style="text-align:right;">${k.caseNumber}</td><td>${money(t.fee)}</td><td>${money(t.paid)}</td><td>${money(t.due)}</td></tr>`;
+  }).join("");
+  tbody.querySelectorAll("tr").forEach(el=> el.addEventListener("click", ()=> openCaseDetail(el.dataset.id,'finance')));
+  const list = db.payments.slice().sort((a,b)=> (b.date||"").localeCompare(a.date||"")).slice(0,10);
+  document.getElementById("paymentsList").innerHTML = list.length ? list.map(p=>{
+    const k = caseById(p.caseId);
+    const label = p.type==="payment"?T("প্রাপ্ত"):(p.type==="court_fee"?T("কোর্ট ফি"):T("খরচ"));
+    return `<div class="paycard"><div><div>${k?k.caseNumber:''}</div><div style="color:var(--muted); font-size:11.5px;">${label} · ${fmtDate(p.date)} ${p.method?'· '+p.method:''}</div></div><div class="amt ${p.type==='payment'?'payment':'expense'}">${p.type==='payment'?'+':'-'}${money(p.amount)}</div></div>`;
+  }).join("") : `<div class="empty">${T("কোনো লেনদেন নেই।")}</div>`;
+}
+function openPaymentModal(presetCaseId){
+  refreshMasterDropdowns();
+  document.getElementById("paymentForm").reset();
+  if(presetCaseId) document.getElementById("pm_case").value = presetCaseId;
+  document.getElementById("pm_date").value = todayISO();
+  document.getElementById("paymentOverlay").classList.add("open");
+}
+document.getElementById("btnAddPayment").addEventListener("click", ()=> openPaymentModal(null));
+document.getElementById("paymentCancel").addEventListener("click", ()=> document.getElementById("paymentOverlay").classList.remove("open"));
+document.getElementById("paymentForm").addEventListener("submit", e=>{
+  e.preventDefault();
+  db.payments.push({ id:uid("pm"), caseId:pm_case.value, type:pm_type.value, amount:Number(pm_amount.value)||0,
+    date:pm_date.value||todayISO(), method:pm_method.value.trim(), note:pm_note.value.trim() });
+  save(); document.getElementById("paymentOverlay").classList.remove("open");
+  renderFinance(); renderDashboard(); if(currentDetailId) renderDetailFinance();
+});
+
+/* ================= REPORTS ================= */
+let currentReportRows = [];
+document.querySelectorAll(".reportbtn").forEach(b=> b.addEventListener("click", ()=> runReport(b.dataset.report)));
+function runReport(kind){
+  const out = document.getElementById("reportOutput");
+  document.getElementById("reportOutputWrap").style.display = "block";
+  let title="", rows=[], html="";
+  if(kind==="todayCause" || kind==="tomorrowCause"){
+    const d = kind==="todayCause" ? todayISO() : plusDays(1);
+    title = kind==="todayCause" ? T("আজকের কজ লিস্ট") : T("আগামীকালের কজ লিস্ট");
+    const list = activeCases().filter(k=>k.nextHearingDate===d);
+    rows = list.map(k=>({ [T("কেস নম্বর")]:k.caseNumber, [T("কোর্ট")]:courtName(k.courtId), [T("পক্ষগণ")]:partiesLine(k), [T("আইনজীবী")]:caseLawyersLine(k) }));
+    html = list.length ? list.map(caseCardHTML).join("") : `<div class="empty">${T("কোনো কেস পাওয়া যায়নি।")}</div>`;
+  } else if(kind==="active" || kind==="disposed"){
+    title = kind==="active" ? T("সক্রিয় মামলার তালিকা") : T("নিষ্পত্তি হওয়া মামলা");
+    const list = kind==="active" ? activeCases() : db.cases.filter(k=>k.status==="disposed");
+    rows = list.map(k=>({ [T("কেস নম্বর")]:k.caseNumber, [T("কোর্ট")]:courtName(k.courtId), [T("পক্ষগণ")]:partiesLine(k),
+      [T("স্ট্যাটাস")]:dynamicBadge(k).label, [T("তারিখ")]:kind==="active"?(k.nextHearingDate||""):(k.disposalDate||"") }));
+    html = list.length ? list.map(caseCardHTML).join("") : `<div class="empty">${T("কোনো কেস পাওয়া যায়নি।")}</div>`;
+  } else if(kind==="byCourt"){
+    title = T("কোর্টভিত্তিক মামলার সংখ্যা");
+    const map = {};
+    db.cases.forEach(k=> map[courtName(k.courtId)] = (map[courtName(k.courtId)]||0)+1);
+    rows = Object.keys(map).map(c=>({ [T("কোর্ট")]:c, [T("মামলার সংখ্যা")]:map[c] }));
+    html = rows.map(r=>`<div class="listrow"><div class="name">${r[T("কোর্ট")]}</div><div class="phone">${r[T("মামলার সংখ্যা")]}</div></div>`).join("") || `<div class="empty">${T("তথ্য নেই।")}</div>`;
+  } else if(kind==="byLawyer"){
+    title = T("আইনজীবীভিত্তিক মামলার সংখ্যা");
+    rows = db.lawyers.map(l=>({ [T("আইনজীবী")]:l.name, [T("মামলার সংখ্যা")]: db.cases.filter(k=>(k.lawyerLinks||[]).some(ll=>ll.lawyerId===l.id)).length }));
+    html = rows.map(r=>`<div class="listrow"><div class="name">${r[T("আইনজীবী")]}</div><div class="phone">${r[T("মামলার সংখ্যা")]}</div></div>`).join("") || `<div class="empty">${T("তথ্য নেই।")}</div>`;
+  } else if(kind==="byClient"){
+    title = T("ক্লায়েন্টভিত্তিক মামলার সংখ্যা");
+    rows = db.clients.map(c=>({ [T("ক্লায়েন্ট")]:c.name, [T("মামলার সংখ্যা")]: db.cases.filter(k=>k.clientId===c.id).length }));
+    html = rows.map(r=>`<div class="listrow"><div class="name">${r[T("ক্লায়েন্ট")]}</div><div class="phone">${r[T("মামলার সংখ্যা")]}</div></div>`).join("") || `<div class="empty">${T("তথ্য নেই।")}</div>`;
+  } else if(kind==="feeDue"){
+    title = T("বকেয়া ফি রিপোর্ট");
+    const list = db.cases.filter(k=>k.agreedFee>0);
+    rows = list.map(k=>{ const t=finTotals(k.id); return { [T("কেস নম্বর")]:k.caseNumber, [T("ফি")]:t.fee, [T("প্রাপ্ত")]:t.paid, [T("বকেয়া")]:t.due }; });
+    html = `<table class="financetable" style="width:100%;"><thead><tr><th>${T("মামলা")}</th><th>${T("ফি")}</th><th>${T("প্রাপ্ত")}</th><th>${T("বকেয়া")}</th></tr></thead><tbody>` +
+      rows.map(r=>`<tr><td style="text-align:right;">${r[T("কেস নম্বর")]}</td><td>${money(r[T("ফি")])}</td><td>${money(r[T("প্রাপ্ত")])}</td><td>${money(r[T("বকেয়া")])}</td></tr>`).join("") +
+      `</tbody></table>` || `<div class="empty">${T("তথ্য নেই।")}</div>`;
+  }
+  currentReportRows = rows;
+  out.innerHTML = `<h3 style="margin-top:0;">${title}</h3>${html}`;
+  out.querySelectorAll(".card[data-id]").forEach(el=> el.addEventListener("click", ()=> openCaseDetail(el.dataset.id)));
+  document.getElementById("reportOutputWrap").scrollIntoView({behavior:"smooth"});
+}
+document.getElementById("btnReportPrint").addEventListener("click", ()=> window.print());
+document.getElementById("btnReportCsv").addEventListener("click", ()=>{
+  if(!currentReportRows.length){ alert(T("এক্সপোর্ট করার মতো কোনো ডেটা নেই।")); return; }
+  const cols = Object.keys(currentReportRows[0]);
+  const csv = [cols.join(",")].concat(currentReportRows.map(r=> cols.map(c=>`"${String(r[c]).replace(/"/g,'""')}"`).join(","))).join("\n");
+  const blob = new Blob(["\uFEFF"+csv], {type:"text/csv;charset=utf-8;"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "report.csv"; a.click();
+});
+
+/* ================= SETTINGS: ORG ================= */
+document.getElementById("orgName").value = db.org.name||"";
+document.getElementById("orgRole").value = db.org.role||"owner";
+document.getElementById("btnSaveOrg").addEventListener("click", ()=>{
+  db.org.name = document.getElementById("orgName").value.trim();
+  db.org.role = document.getElementById("orgRole").value;
+  save(); renderDashboard();
+  alert(T("সংরক্ষণ হয়েছে।"));
+});
+document.getElementById("btnExportAll").addEventListener("click", ()=>{
+  const blob = new Blob([JSON.stringify(db, null, 2)], {type:"application/json"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "lawyer-diary-backup.json"; a.click();
+});
+
+/* ================= SETTINGS: COURTS (kept from original, improved with duplicate check) ================= */
+const divisionsData = {
+  "ঢাকা বিভাগ": ["ঢাকা","ফরিদপুর","গাজীপুর","গোপালগঞ্জ","কিশোরগঞ্জ","মাদারীপুর","মানিকগঞ্জ","মুন্সীগঞ্জ","নারায়ণগঞ্জ","নরসিংদী","রাজবাড়ী","শরীয়তপুর","টাঙ্গাইল"],
+  "চট্টগ্রাম বিভাগ": ["বান্দরবান","ব্রাহ্মণবাড়িয়া","চাঁদপুর","চট্টগ্রাম","কুমিল্লা","কক্সবাজার","ফেনী","খাগড়াছড়ি","লক্ষ্মীপুর","নোয়াখালী","রাঙামাটি"],
+  "রাজশাহী বিভাগ": ["বগুড়া","জয়পুরহাট","নওগাঁ","নাটোর","চাঁপাইনবাবগঞ্জ","পাবনা","রাজশাহী","সিরাজগঞ্জ"],
+  "খুলনা বিভাগ": ["বাগেরহাট","চুয়াডাঙ্গা","যশোর","ঝিনাইদহ","খুলনা","কুষ্টিয়া","মাগুরা","মেহেরপুর","নড়াইল","সাতক্ষীরা"],
+  "বরিশাল বিভাগ": ["বরগুনা","বরিশাল","ভোলা","ঝালকাঠি","পটুয়াখালী","পিরোজপুর"],
+  "সিলেট বিভাগ": ["হবিগঞ্জ","মৌলভীবাজার","সুনামগঞ্জ","সিলেট"],
+  "রংপুর বিভাগ": ["দিনাজপুর","গাইবান্ধা","কুড়িগ্রাম","লালমনিরহাট","নীলফামারী","পঞ্চগড়","রংপুর","ঠাকুরগাঁও"],
+  "ময়মনসিংহ বিভাগ": ["জামালপুর","ময়মনসিংহ","নেত্রকোণা","শেরপুর"]
+};
+const ordinals = ["১ম","২য়","৩য়","৪র্থ","৫ম","৬ষ্ঠ","৭ম","৮ম","৯ম","১০ম"];
+const bnDigits = ["১","২","৩","৪","৫","৬","৭","৮","৯","১০","১১","১২","১৩","১৪","১৫"];
+const courtTemplates = [
+  { id:"jdj", label:"যুগ্ম জেলা জজ আদালত", needs:"district" },
+  { id:"dj", label:"জেলা ও দায়রা জজ আদালত", needs:"district" },
+  { id:"adsj", label:"অতিরিক্ত জেলা ও দায়রা জজ আদালত", needs:"district_number", numberFormat:"ordinal" },
+  { id:"saj", label:"সিনিয়র সহকারী জজ আদালত", needs:"district" },
+  { id:"aj", label:"সহকারী জজ আদালত", needs:"district" },
+  { id:"cjm", label:"চীফ জুডিসিয়াল ম্যাজিস্ট্রেট আদালত", needs:"district" },
+  { id:"jm", label:"জুডিসিয়াল ম্যাজিস্ট্রেট আদালত", needs:"district_number", numberFormat:"no" },
+  { id:"cmm", label:"চীফ মেট্রোপলিটন ম্যাজিস্ট্রেট আদালত", needs:"district" },
+  { id:"mm", label:"মহানগর হাকিম আদালত", needs:"district_thana" },
+  { id:"family", label:"পারিবারিক আদালত", needs:"district" },
+  { id:"labour", label:"শ্রম আদালত", needs:"district" },
+  { id:"labour_appellate", label:"শ্রম আপীল ট্রাইব্যুনাল", needs:"district" },
+  { id:"nari_shishu", label:"নারী ও শিশু নির্যাতন দমন ট্রাইব্যুনাল", needs:"district" },
+  { id:"special_judge", label:"বিশেষ জজ আদালত (দুর্নীতি দমন)", needs:"district_number", numberFormat:"no" },
+  { id:"cyber", label:"সাইবার ট্রাইব্যুনাল", needs:"district" },
+  { id:"land_survey", label:"ভূমি জরিপ ট্রাইব্যুনাল", needs:"district" },
+  { id:"artharin", label:"অর্থঋণ আদালত", needs:"number", numberFormat:"no" },
+  { id:"hc", label:"হাইকোর্ট বিভাগ, বাংলাদেশ সুপ্রীম কোর্ট", needs:"fixed" },
+  { id:"ad", label:"আপীল বিভাগ, বাংলাদেশ সুপ্রীম কোর্ট", needs:"fixed" },
+  { id:"manual", label:"অন্য কোর্ট (তালিকায় না থাকলে নিজে লিখুন)", needs:"manual" }
+];
+function refreshCourtTemplateDropdown(prefix){
+  prefix = prefix || "cb";
+  document.getElementById(prefix+"_template").innerHTML = courtTemplates.map(t=>`<option value="${t.id}">${T(t.label)}</option>`).join("");
+}
+function renderCourtBuilderExtra(prefix){
+  prefix = prefix || "cb";
+  const t = courtTemplates.find(x=>x.id===document.getElementById(prefix+"_template").value);
+  const box = document.getElementById(prefix+"_extra");
+  if(!t){ box.innerHTML=""; return; }
+  if(t.needs==="district"){
+    const divisions = Object.keys(divisionsData);
+    box.innerHTML = `<div class="row2"><div class="field"><label>${T("বিভাগ")}</label>
+      <select id="${prefix}_division">${divisions.map(d=>`<option value="${d}">${d}</option>`).join("")}</select></div>
+      <div class="field"><label>${T("জেলা")}</label><select id="${prefix}_district"></select></div></div>`;
+    const fill = ()=>{ const div=document.getElementById(prefix+"_division").value;
+      document.getElementById(prefix+"_district").innerHTML = divisionsData[div].map(d=>`<option value="${d}">${d}</option>`).join(""); };
+    document.getElementById(prefix+"_division").addEventListener("change", fill); fill();
+  } else if(t.needs==="district_thana"){
+    const divisions = Object.keys(divisionsData);
+    box.innerHTML = `<div class="row2"><div class="field"><label>${T("বিভাগ")}</label>
+      <select id="${prefix}_division">${divisions.map(d=>`<option value="${d}">${d}</option>`).join("")}</select></div>
+      <div class="field"><label>${T("জেলা")}</label><select id="${prefix}_district"></select></div></div>
+      <div class="field"><label>${T("থানা")}</label><input type="text" id="${prefix}_thana" placeholder="${T("থানা / যেখানে কোর্ট বসে")}"></div>`;
+    const fill = ()=>{ const div=document.getElementById(prefix+"_division").value;
+      document.getElementById(prefix+"_district").innerHTML = divisionsData[div].map(d=>`<option value="${d}">${d}</option>`).join(""); };
+    document.getElementById(prefix+"_division").addEventListener("change", fill); fill();
+  } else if(t.needs==="district_number"){
+    const divisions = Object.keys(divisionsData);
+    const options = t.numberFormat==="ordinal" ? ordinals : bnDigits;
+    box.innerHTML = `<div class="row2"><div class="field"><label>${T("বিভাগ")}</label>
+      <select id="${prefix}_division">${divisions.map(d=>`<option value="${d}">${d}</option>`).join("")}</select></div>
+      <div class="field"><label>${T("জেলা")}</label><select id="${prefix}_district"></select></div></div>
+      <div class="field"><label>${t.numberFormat==="ordinal"?T("কত নম্বর আদালত"):T("আদালত নম্বর")}</label>
+      <select id="${prefix}_number">${options.map(o=>`<option value="${o}">${o}</option>`).join("")}</select></div>`;
+    const fill = ()=>{ const div=document.getElementById(prefix+"_division").value;
+      document.getElementById(prefix+"_district").innerHTML = divisionsData[div].map(d=>`<option value="${d}">${d}</option>`).join(""); };
+    document.getElementById(prefix+"_division").addEventListener("change", fill); fill();
+  } else if(t.needs==="number"){
+    const options = t.numberFormat==="ordinal" ? ordinals : bnDigits;
+    box.innerHTML = `<div class="field"><label>${t.numberFormat==="ordinal"?T("কত নম্বর আদালত"):T("আদালত নম্বর")}</label>
+      <select id="${prefix}_number">${options.map(o=>`<option value="${o}">${o}</option>`).join("")}</select></div>`;
+  } else if(t.needs==="fixed"){
+    box.innerHTML = `<div class="helptext">${T("এই কোর্টের নাম নির্দিষ্ট — শুধু যোগ করুন।")}</div>`;
+  } else {
+    box.innerHTML = `<div class="field"><label>${T("সম্পূর্ণ কোর্টের নাম লিখুন")}</label><input type="text" id="${prefix}_manual" placeholder="${T("যেমনঃ বিশেষ জজ আদালত, ঢাকা")}"></div>`;
+  }
+}
+function buildCourtNameFromTemplate(prefix){
+  prefix = prefix || "cb";
+  const t = courtTemplates.find(x=>x.id===document.getElementById(prefix+"_template").value);
+  if(!t) return "";
+  if(t.needs==="district") return `${t.label}, ${document.getElementById(prefix+"_district").value}`;
+  if(t.needs==="district_thana"){
+    const thana = document.getElementById(prefix+"_thana").value.trim();
+    if(!thana) return "";
+    return `${t.label}, ${thana}, ${document.getElementById(prefix+"_district").value}`;
+  }
+  if(t.needs==="district_number"){
+    const num = document.getElementById(prefix+"_number").value;
+    const district = document.getElementById(prefix+"_district").value;
+    return t.numberFormat==="ordinal" ? `${t.label}, ${num}, ${district}` : `${t.label} নং-${num}, ${district}`;
+  }
+  if(t.needs==="number"){ const num=document.getElementById(prefix+"_number").value; return t.numberFormat==="ordinal"?`${t.label}, ${num}`:`${t.label} নং-${num}`; }
+  if(t.needs==="fixed") return t.label;
+  return document.getElementById(prefix+"_manual").value.trim();
+}
+/* Capture the division/district/thana chosen while building the court name, so that
+   picking this court later (in the case form) can auto-fill those fields for the lawyer
+   instead of asking them to type it in twice. */
+function buildCourtMetaFromTemplate(prefix){
+  prefix = prefix || "cb";
+  const t = courtTemplates.find(x=>x.id===document.getElementById(prefix+"_template").value);
+  if(!t) return {};
+  const divisionEl = document.getElementById(prefix+"_division");
+  const districtEl = document.getElementById(prefix+"_district");
+  const thanaEl = document.getElementById(prefix+"_thana");
+  const meta = {};
+  if(divisionEl) meta.division = divisionEl.value;
+  if(districtEl) meta.district = districtEl.value;
+  if(thanaEl) meta.thana = thanaEl.value.trim();
+  return meta;
+}
+document.getElementById("cb_template").addEventListener("change", ()=>renderCourtBuilderExtra("cb"));
+document.getElementById("cb_addBtn").addEventListener("click", ()=>{
+  const name = buildCourtNameFromTemplate("cb");
+  if(!name){ alert(T("দয়া করে কোর্টের নাম সম্পূর্ণ করুন।")); return; }
+  if(db.courts.some(c=>c.name===name)){ alert(T("এই নামের কোর্ট আগে থেকেই তালিকায় আছে।")); return; }
+  const meta = buildCourtMetaFromTemplate("cb");
+  db.courts.push({id:uid("co"), name, ...meta}); save(); renderCourtSettings(); refreshMasterDropdowns();
+  if(document.getElementById("cb_template").value==="manual") document.getElementById("cb_manual").value="";
+});
+/* ---- Same structured builder, reused as a modal so a lawyer can add a missing
+   court on the fly while filling in the New Case form, without losing their place. ---- */
+function openCourtModal(){
+  refreshCourtTemplateDropdown("cbm");
+  renderCourtBuilderExtra("cbm");
+  document.getElementById("courtModalOverlay").classList.add("open");
+}
+document.getElementById("f_openCourtModal").addEventListener("click", openCourtModal);
+document.getElementById("courtModalCancel").addEventListener("click", ()=> document.getElementById("courtModalOverlay").classList.remove("open"));
+document.getElementById("cbm_template").addEventListener("change", ()=>renderCourtBuilderExtra("cbm"));
+document.getElementById("cbm_addBtn").addEventListener("click", ()=>{
+  const name = buildCourtNameFromTemplate("cbm");
+  if(!name){ alert(T("দয়া করে কোর্টের নাম সম্পূর্ণ করুন।")); return; }
+  if(db.courts.some(c=>c.name===name)){ alert(T("এই নামের কোর্ট আগে থেকেই তালিকায় আছে।")); return; }
+  const meta = buildCourtMetaFromTemplate("cbm");
+  const c = {id:uid("co"), name, ...meta};
+  db.courts.push(c); save(); renderCourtSettings(); refreshMasterDropdowns();
+  document.getElementById("f_court").value = c.id;
+  document.getElementById("f_court").dispatchEvent(new Event("change"));
+  document.getElementById("courtModalOverlay").classList.remove("open");
+});
+function renderCourtSettings(){
+  document.getElementById("courtChips").innerHTML = db.courts.map(c=>
+    `<div class="chip"><span>${c.name}</span><button data-id="${c.id}">✕</button></div>`).join("");
+  document.getElementById("courtChips").querySelectorAll("button").forEach(b=> b.addEventListener("click", ()=>{
+    if(db.cases.some(k=>k.courtId===b.dataset.id)){ alert(T("এই কোর্ট মামলার সাথে যুক্ত থাকায় মুছে ফেলা যাবে না।")); return; }
+    db.courts = db.courts.filter(c=>c.id!==b.dataset.id); save(); renderCourtSettings(); refreshMasterDropdowns();
+  }));
+}
+
+/* ================= MASTER DROPDOWNS (shared across modals) ================= */
+function refreshMasterDropdowns(){
+  const courtOpts = db.courts.map(c=>`<option value="${c.id}">${c.name}</option>`).join("");
+  document.getElementById("f_court").innerHTML = courtOpts;
+  const lawyerOpts = `<option value="">${T("— আইনজীবী বাছাই —")}</option>` + db.lawyers.map(l=>`<option value="${l.id}">${l.name}</option>`).join("");
+  document.getElementById("f_lawyerSelect").innerHTML = lawyerOpts;
+  const caseOpts = `<option value="">${T("— নেই —")}</option>` + db.cases.map(k=>`<option value="${k.id}">${k.caseNumber}</option>`).join("");
+  document.getElementById("tk_case").innerHTML = caseOpts;
+  const caseOptsReq = db.cases.map(k=>`<option value="${k.id}">${k.caseNumber}</option>`).join("");
+  document.getElementById("dc_case").innerHTML = caseOptsReq;
+  document.getElementById("pm_case").innerHTML = caseOptsReq;
+}
+
+/* ================= ADD / EDIT CASE MODAL ================= */
+let newPlaintiffs = [], newDefendants = [], newLawyerLinks = [], editCaseId = null;
+function isIncompleteLawyer(l){ return !!l && !l.bar && !l.mobile && !l.email && !l.chamber && !l.spec; }
+function renderChipList(arr, elId, labelFn, classFn){
+  document.getElementById(elId).innerHTML = arr.map((x,i)=>
+    `<div class="chip2${classFn && classFn(x) ? ' chip2-incomplete' : ''}"><span>${labelFn(x)}</span><button type="button" data-i="${i}">✕</button></div>`).join("");
+  document.getElementById(elId).querySelectorAll("button").forEach(b=> b.addEventListener("click", ()=>{
+    arr.splice(Number(b.dataset.i),1);
+    if(elId==="plaintiffChips") renderChipList(newPlaintiffs,"plaintiffChips",p=>p.name);
+    else if(elId==="defendantChips") renderChipList(newDefendants,"defendantChips",p=>p.name);
+    else renderChipList(newLawyerLinks,"lawyerChips",l=>`${lawyerById(l.lawyerId)?lawyerById(l.lawyerId).name:''} (${sideLabel(l.side)})`, l=>isIncompleteLawyer(lawyerById(l.lawyerId)));
+  }));
+}
+function sideLabel(s){ return s==="own"?T("নিজ পক্ষ"):(s==="plaintiff"?T("বাদী পক্ষ"):T("বিবাদী পক্ষ")); }
+function caseSidesLine(k){
+  const set = new Set((k.lawyerLinks||[]).map(l=>sideLabel(l.side)));
+  return set.size ? Array.from(set).join(", ") : "—";
+}
+function lastActivity(k){
+  const hs = hearingsOf(k.id);
+  return (hs.length && hs[0].shortOrder) ? hs[0].shortOrder : "";
+}
+
+document.getElementById("addPlaintiff").addEventListener("click", ()=>{
+  const v = document.getElementById("f_plaintiffName").value.trim(); if(!v) return;
+  newPlaintiffs.push({id:uid("p"), name:v}); document.getElementById("f_plaintiffName").value="";
+  renderChipList(newPlaintiffs,"plaintiffChips",p=>p.name);
+});
+document.getElementById("addDefendant").addEventListener("click", ()=>{
+  const v = document.getElementById("f_defendantName").value.trim(); if(!v) return;
+  newDefendants.push({id:uid("d"), name:v}); document.getElementById("f_defendantName").value="";
+  renderChipList(newDefendants,"defendantChips",p=>p.name);
+});
+document.getElementById("addLawyerLink").addEventListener("click", ()=>{
+  let lawyerId = document.getElementById("f_lawyerSelect").value;
+  const newName = document.getElementById("f_newLawyer").value.trim();
+  if(!lawyerId && newName){ const lw = {id:uid("lw"), name:newName, bar:"", mobile:"", email:"", chamber:"", spec:"", active:"active"}; db.lawyers.push(lw); save(); refreshMasterDropdowns(); lawyerId = lw.id; }
+  if(!lawyerId) return;
+  const side = document.getElementById("f_lawyerSide").value;
+  if(newLawyerLinks.some(l=>l.lawyerId===lawyerId && l.side===side)) return;
+  newLawyerLinks.push({lawyerId, side});
+  document.getElementById("f_newLawyer").value = ""; document.getElementById("f_lawyerSelect").value="";
+  renderChipList(newLawyerLinks,"lawyerChips",l=>`${lawyerById(l.lawyerId)?lawyerById(l.lawyerId).name:''} (${sideLabel(l.side)})`, l=>isIncompleteLawyer(lawyerById(l.lawyerId)));
+});
+/* Selecting a pre-built court auto-fills বিভাগ/জেলা/থানা so the lawyer doesn't have to
+   type the same information twice (once while setting the court up, once per case). */
+document.getElementById("f_court").addEventListener("change", ()=>{
+  const c = db.courts.find(x=>x.id===document.getElementById("f_court").value);
+  if(!c) return;
+  const dv = document.getElementById("f_division"), dt = document.getElementById("f_district"), th = document.getElementById("f_thana");
+  if(c.division) dv.value = c.division;
+  if(c.district) dt.value = c.district;
+  if(c.thana) th.value = c.thana;
+});
+function setSelectedClient(id){
+  document.getElementById("f_client").value = id || "";
+  document.getElementById("f_clientDisplay").textContent = id ? clientName(id) : T("— নির্বাচন করুন —");
+}
+document.getElementById("f_addClientInline").addEventListener("click", ()=>{
+  const name = document.getElementById("f_newClient").value.trim(); if(!name) return;
+  const c = {id:uid("cl"), name, mobile:"", email:"", address:"", notes:""}; db.clients.push(c); save(); refreshMasterDropdowns();
+  setSelectedClient(c.id); document.getElementById("f_newClient").value = "";
+});
+/* Searchable client picker — a plain <select> with thousands of clients becomes
+   unusable, so instead we open a modal with a search box over the full list. */
+function renderClientPickerList(){
+  const q = document.getElementById("clientPickerSearch").value.trim().toLowerCase();
+  const list = !q ? db.clients : db.clients.filter(c=>`${c.name} ${c.mobile||""}`.toLowerCase().includes(q));
+  const box = document.getElementById("clientPickerList");
+  box.innerHTML = list.length ? list.slice(0,200).map(c=>`<div class="listrow" data-id="${c.id}"><div><div class="name">${c.name}</div><div class="role">${c.mobile||""}</div></div></div>`).join("")
+    : `<div class="empty">${T("কোনো ক্লায়েন্ট নেই।")}</div>`;
+  box.querySelectorAll(".listrow").forEach(el=> el.addEventListener("click", ()=>{
+    setSelectedClient(el.dataset.id);
+    document.getElementById("clientPickerOverlay").classList.remove("open");
+  }));
+}
+document.getElementById("f_clientPickBtn").addEventListener("click", ()=>{
+  document.getElementById("clientPickerSearch").value = "";
+  renderClientPickerList();
+  document.getElementById("clientPickerOverlay").classList.add("open");
+});
+document.getElementById("clientPickerCancel").addEventListener("click", ()=> document.getElementById("clientPickerOverlay").classList.remove("open"));
+document.getElementById("clientPickerSearch").addEventListener("input", renderClientPickerList);
+
+function openAddCase(){
+  editCaseId = null;
+  document.getElementById("caseModalTitle").textContent = T("নতুন মামলা যোগ করুন");
+  document.getElementById("dupWarning").style.display = "none";
+  document.getElementById("caseForm").reset();
+  setSelectedClient("");
+  newPlaintiffs = []; newDefendants = []; newLawyerLinks = [];
+  refreshMasterDropdowns();
+  renderChipList(newPlaintiffs,"plaintiffChips",p=>p.name);
+  renderChipList(newDefendants,"defendantChips",p=>p.name);
+  renderChipList(newLawyerLinks,"lawyerChips",l=>"");
+  document.getElementById("f_date").value = todayISO();
+  document.getElementById("caseOverlay").classList.add("open");
+}
+document.getElementById("qAdd").addEventListener("click", openAddCase);
+document.getElementById("fabAdd").addEventListener("click", openAddCase);
+document.getElementById("caseCancel").addEventListener("click", ()=> document.getElementById("caseOverlay").classList.remove("open"));
+
+let dupConfirmed = false;
+document.getElementById("caseForm").addEventListener("submit", e=>{
+  e.preventDefault();
+  const caseNumber = document.getElementById("f_caseNumber").value.trim();
+  const courtId = document.getElementById("f_court").value;
+  const caseYear = document.getElementById("f_caseYear").value.trim();
+  if(!editCaseId){
+    const dup = db.cases.find(k=> k.caseNumber===caseNumber && k.courtId===courtId && k.caseYear===caseYear);
+    if(dup && !dupConfirmed){ document.getElementById("dupWarning").style.display="block"; dupConfirmed=true; const m=document.querySelector("#caseOverlay .modal"); if(m) m.scrollTop=0; return; }
+  }
+  dupConfirmed = false;
+  const tags = document.getElementById("f_tags").value.split(",").map(s=>s.trim()).filter(Boolean);
+  const hearingDate = document.getElementById("f_date").value;
+  const nextDate = document.getElementById("f_nextDate").value || "";
+
+  if(editCaseId){
+    const k = caseById(editCaseId);
+    Object.assign(k, {
+      caseNumber, caseType:document.getElementById("f_caseType").value.trim(), caseYear,
+      filingDate:document.getElementById("f_filingDate").value, courtId,
+      bench:document.getElementById("f_bench").value.trim(), division:document.getElementById("f_division").value.trim(),
+      district:document.getElementById("f_district").value.trim(), thana:document.getElementById("f_thana").value.trim(),
+      clientId:document.getElementById("f_client").value, plaintiffs:newPlaintiffs.slice(), defendants:newDefendants.slice(),
+      lawyerLinks:newLawyerLinks.slice(), priority:document.getElementById("f_priority").value, status:document.getElementById("f_status").value,
+      tags, notes:document.getElementById("f_notes").value.trim(), agreedFee:Number(document.getElementById("f_agreedFee").value)||0,
+      updatedAt: todayISO()
+    });
+  } else {
+    const k = {
+      id: uid("k"), caseNumber, caseType:document.getElementById("f_caseType").value.trim(), caseYear,
+      filingDate:document.getElementById("f_filingDate").value, courtId,
+      bench:document.getElementById("f_bench").value.trim(), division:document.getElementById("f_division").value.trim(),
+      district:document.getElementById("f_district").value.trim(), thana:document.getElementById("f_thana").value.trim(),
+      clientId:document.getElementById("f_client").value, plaintiffs:newPlaintiffs.slice(), defendants:newDefendants.slice(),
+      lawyerLinks:newLawyerLinks.slice(), priority:document.getElementById("f_priority").value, status:document.getElementById("f_status").value,
+      tags, notes:document.getElementById("f_notes").value.trim(), agreedFee:Number(document.getElementById("f_agreedFee").value)||0,
+      createdAt: todayISO(), updatedAt: todayISO(),
+      lastHearingDate: hearingDate, nextHearingDate: nextDate || hearingDate,
+      disposalDate:null, disposalReason:null
+    };
+    db.cases.push(k);
+    db.hearings.push({ id:uid("h"), caseId:k.id, date:hearingDate, time:"", type:"hearing",
+      orderNumber:document.getElementById("f_orderNumber").value.trim(), shortOrder:document.getElementById("f_shortOrder").value.trim(),
+      detailOrder:document.getElementById("f_detailOrder").value.trim(), outcome:"", adjourn:"", note:"", nextDate, createdAt: todayISO() });
+  }
+  // TODO API: POST the case (and its first hearing) to API_URL once the backend is live, instead of pushing locally.
+  save();
+  document.getElementById("caseOverlay").classList.remove("open");
+  renderCases(); renderDashboard();
+  if(editCaseId) openCaseDetail(editCaseId);
+});
+
+/* ================= CASE DETAIL ================= */
+let currentDetailId = null, currentDetailTab = "hearings";
+function openCaseDetail(id, tab){
+  currentDetailId = id;
+  currentDetailTab = tab || "hearings";
+  switchView("casedetail");
+  renderCaseDetail();
+}
+document.getElementById("backFromDetail").addEventListener("click", ()=> switchView("cases"));
+
+document.querySelectorAll(".tabsrow button").forEach(b=> b.addEventListener("click", ()=>{
+  currentDetailTab = b.dataset.tab;
+  document.querySelectorAll(".tabsrow button").forEach(x=> x.classList.toggle("active", x===b));
+  document.querySelectorAll(".tabpane").forEach(p=> p.classList.toggle("active", p.id==="tab-"+b.dataset.tab));
+}));
+
+function renderCaseDetail(){
+  const k = caseById(currentDetailId);
+  if(!k){ switchView("cases"); return; }
+  const b = dynamicBadge(k);
+  document.getElementById("detailProfile").innerHTML = `
+    <h2>${k.caseNumber}</h2>
+    <div class="metarow" style="margin-bottom:10px;">
+      <span class="badge ${b.cls}">${b.label}</span>
+      ${k.priority==="high"?`<span class="badge red">${T("অগ্রাধিকার")}</span>`:''}
+      ${k.caseType?`<span class="badge grey">${k.caseType}</span>`:''}
+      ${(k.tags||[]).map(t=>`<span class="badge teal">${t}</span>`).join("")}
+    </div>
+    <div class="actionsrow">
+      <button class="btn small" id="btnEditCase">${T("সম্পাদনা")}</button>
+      ${k.status!=="disposed"?`<button class="btn small danger" id="btnDispose">${T("নিষ্পত্তি করুন")}</button>`:''}
+      ${k.status!=="stayed" && k.status!=="disposed" ? `<button class="btn small plain" data-setstatus="stayed">${T("স্থগিত করুন")}</button>` : ''}
+      ${k.status!=="judgment_awaited" && k.status!=="disposed" ? `<button class="btn small plain" data-setstatus="judgment_awaited">${T("রায়ের অপেক্ষায়")}</button>` : ''}
+      ${k.status!=="active" && k.status!=="disposed" ? `<button class="btn small plain" data-setstatus="active">${T("সক্রিয় করুন")}</button>` : ''}
+      ${k.status!=="archived" ? `<button class="btn small plain" data-setstatus="archived">${T("আর্কাইভ")}</button>` : ''}
+    </div>
+    <div class="proprow"><span class="k">${T("কোর্ট")}</span><span class="v">${courtName(k.courtId)}${k.bench?' · '+k.bench:''}</span></div>
+    <div class="proprow"><span class="k">${T("বাদী")}</span><span class="v">${(k.plaintiffs||[]).map(p=>p.name).join(", ")||"—"}</span></div>
+    <div class="proprow"><span class="k">${T("বিবাদী")}</span><span class="v">${(k.defendants||[]).map(d=>d.name).join(", ")||"—"}</span></div>
+    <div class="proprow"><span class="k">${T("ক্লায়েন্ট")}</span><span class="v">${clientName(k.clientId)||"—"}</span></div>
+    <div class="proprow"><span class="k">${T("আইনজীবী")}</span><span class="v">${caseLawyersLine(k)}</span></div>
+    <div class="proprow"><span class="k">${T("থানা / জেলা")}</span><span class="v">${k.thana||"—"} ${k.district?'/ '+k.district:''}</span></div>
+    <div class="proprow"><span class="k">${T("দাখিলের তারিখ")}</span><span class="v">${fmtDate(k.filingDate)}</span></div>
+    <div class="proprow"><span class="k">${T("পরবর্তী তারিখ")}</span><span class="v">${k.nextHearingDate?fmtDate(k.nextHearingDate):"—"}</span></div>
+    ${k.status==="disposed"?`<div class="proprow"><span class="k">${T("নিষ্পত্তির তারিখ")}</span><span class="v">${fmtDate(k.disposalDate)}</span></div>
+      <div class="proprow"><span class="k">${T("কারণ")}</span><span class="v">${k.disposalReason||""}</span></div>`:''}
+    ${k.notes?`<div class="proprow"><span class="k">${T("নোট")}</span><span class="v">${k.notes}</span></div>`:''}
+  `;
+  document.getElementById("btnEditCase").addEventListener("click", ()=> openEditCase(k.id));
+  const disposeBtn = document.getElementById("btnDispose");
+  if(disposeBtn) disposeBtn.addEventListener("click", ()=>{
+    document.getElementById("disposeForm").reset();
+    document.getElementById("disp_date").value = todayISO();
+    document.getElementById("disposeOverlay").classList.add("open");
+  });
+  document.querySelectorAll("[data-setstatus]").forEach(btn=> btn.addEventListener("click", ()=>{
+    k.status = btn.dataset.setstatus; k.updatedAt = todayISO(); save(); renderCaseDetail(); renderCases(); renderDashboard();
+  }));
+
+  document.querySelectorAll(".tabsrow button").forEach(x=> x.classList.toggle("active", x.dataset.tab===currentDetailTab));
+  document.querySelectorAll(".tabpane").forEach(p=> p.classList.toggle("active", p.id==="tab-"+currentDetailTab));
+  renderDetailHistory(); renderDetailTasks(); renderDetailDocs(); renderDetailFinance();
+}
+
+function renderDetailHistory(){
+  const k = caseById(currentDetailId);
+  const list = hearingsOf(k.id);
+  const box = document.getElementById("detailHistory");
+  box.innerHTML = list.length ? list.map(h=>`
+    <div class="histitem ${h.date<todayISO() && h.nextDate ? '' : ''}">
+      <div class="hd"><span class="hdate">${fmtDate(h.date)}</span><span class="horder">${h.orderNumber?T("আদেশ নং ")+h.orderNumber:''}</span></div>
+      ${h.shortOrder?`<div class="hshort">${h.shortOrder}</div>`:''}
+      ${h.detailOrder?`<div class="hdetail">${h.detailOrder}</div>`:''}
+      ${h.adjourn?`<div class="hdetail">${T("মুলতবির কারণ: ")}${h.adjourn}</div>`:''}
+      ${h.nextDate?`<div class="hnext">${T("পরবর্তী তারিখ: ")}${fmtDate(h.nextDate)}</div>`:''}
+    </div>`).join("") : `<div class="empty">${T("এখনো কোনো হিয়ারিং যোগ হয়নি।")}</div>`;
+}
+document.getElementById("btnAddHearing").addEventListener("click", ()=>{
+  document.getElementById("hearingForm").reset();
+  document.getElementById("h_date").value = todayISO();
+  document.getElementById("hearingOverlay").classList.add("open");
+});
+document.getElementById("hearingCancel").addEventListener("click", ()=> document.getElementById("hearingOverlay").classList.remove("open"));
+document.getElementById("hearingForm").addEventListener("submit", e=>{
+  e.preventDefault();
+  const k = caseById(currentDetailId);
+  const date = document.getElementById("h_date").value;
+  const nextDate = document.getElementById("h_nextDate").value;
+  // Never overwrite past hearing records — always append a new event.
+  db.hearings.push({ id:uid("h"), caseId:k.id, date, time:document.getElementById("h_time").value, type:document.getElementById("h_type").value,
+    orderNumber:document.getElementById("h_orderNumber").value.trim(), shortOrder:document.getElementById("h_shortOrder").value.trim(),
+    detailOrder:document.getElementById("h_detailOrder").value.trim(), outcome:document.getElementById("h_outcome").value.trim(),
+    adjourn:document.getElementById("h_adjourn").value.trim(), note:document.getElementById("h_note").value.trim(),
+    nextDate, createdAt: todayISO() });
+  k.lastHearingDate = date;
+  if(nextDate) k.nextHearingDate = nextDate;
+  k.updatedAt = todayISO();
+  save();
+  document.getElementById("hearingOverlay").classList.remove("open");
+  renderCaseDetail(); renderCases(); renderDashboard();
+});
+
+document.getElementById("disposeCancel").addEventListener("click", ()=> document.getElementById("disposeOverlay").classList.remove("open"));
+document.getElementById("disposeForm").addEventListener("submit", e=>{
+  e.preventDefault();
+  const k = caseById(currentDetailId);
+  k.status = "disposed"; k.disposalDate = document.getElementById("disp_date").value; k.disposalReason = document.getElementById("disp_reason").value.trim();
+  k.updatedAt = todayISO();
+  save();
+  document.getElementById("disposeOverlay").classList.remove("open");
+  renderCaseDetail(); renderCases(); renderDashboard();
+});
+
+function renderDetailTasks(){
+  const box = document.getElementById("detailTasks");
+  const list = tasksOf(currentDetailId);
+  box.innerHTML = list.length ? list.map(t=>`
+    <div class="card" style="cursor:default;"><div class="taskrow">
+      <div class="chk ${t.status==='done'?'done':''}" data-toggle="${t.id}">✓</div>
+      <div class="body"><div class="ttitle ${t.status==='done'?'done':''}">${t.title}</div>
+      <div class="tmeta">${t.assignee?t.assignee+' · ':''}${t.due?fmtDate(t.due):T("তারিখ নেই")}</div></div>
+    </div></div>`).join("") : `<div class="empty">${T("এই মামলার জন্য কোনো টাস্ক নেই।")}</div>`;
+  box.querySelectorAll("[data-toggle]").forEach(el=> el.addEventListener("click", ()=>{
+    const t = db.tasks.find(x=>x.id===el.dataset.toggle); t.status = t.status==="done"?"pending":"done"; save(); renderDetailTasks(); renderDashboard();
+  }));
+}
+document.getElementById("btnAddCaseTask").addEventListener("click", ()=> openTaskModal(currentDetailId));
+
+function renderDetailDocs(){
+  const box = document.getElementById("detailDocs");
+  const list = docsOf(currentDetailId);
+  box.innerHTML = list.length ? list.map(d=>`
+    <div class="listrow docrow" style="cursor:default;"><div><div class="dname">${d.name}</div><div class="dmeta">${d.type} · ${fmtDate(d.date||d.uploadDate)}${d.description?' · '+d.description:''}</div></div>
+    ${d.dataUrl?`<a href="${d.dataUrl}" download="${d.name}" class="iconlink">${T("ডাউনলোড")}</a>`:''}</div>`).join("") : `<div class="empty">${T("এই মামলায় কোনো ডকুমেন্ট নেই।")}</div>`;
+}
+document.getElementById("btnAddCaseDoc").addEventListener("click", ()=> openDocModal(currentDetailId));
+
+function renderDetailFinance(){
+  const box = document.getElementById("detailFinance");
+  const t = finTotals(currentDetailId);
+  const list = paymentsOf(currentDetailId).slice().sort((a,b)=> (b.date||"").localeCompare(a.date||""));
+  box.innerHTML = `
+    <div class="statgrid" style="margin-bottom:14px;">
+      <div class="statcard"><div class="num" style="font-size:15px;">${money(t.fee)}</div><div class="lbl">${T("ফি")}</div></div>
+      <div class="statcard"><div class="num" style="font-size:15px;">${money(t.paid)}</div><div class="lbl">${T("প্রাপ্ত")}</div></div>
+      <div class="statcard pending"><div class="num" style="font-size:15px;">${money(t.due)}</div><div class="lbl">${T("বকেয়া")}</div></div>
+    </div>` + (list.length ? list.map(p=>{
+      const label = p.type==="payment"?T("প্রাপ্ত"):(p.type==="court_fee"?T("কোর্ট ফি"):T("খরচ"));
+      return `<div class="paycard"><div><div>${label}</div><div style="color:var(--muted); font-size:11.5px;">${fmtDate(p.date)} ${p.method?'· '+p.method:''} ${p.note?'· '+p.note:''}</div></div><div class="amt ${p.type==='payment'?'payment':'expense'}">${p.type==='payment'?'+':'-'}${money(p.amount)}</div></div>`;
+    }).join("") : `<div class="empty">${T("কোনো লেনদেন নেই।")}</div>`);
+}
+document.getElementById("btnAddCasePayment").addEventListener("click", ()=> openPaymentModal(currentDetailId));
+
+function openEditCase(id){
+  const k = caseById(id);
+  editCaseId = id;
+  document.getElementById("caseModalTitle").textContent = T("মামলা সম্পাদনা করুন");
+  document.getElementById("dupWarning").style.display = "none";
+  refreshMasterDropdowns();
+  document.getElementById("f_caseNumber").value = k.caseNumber;
+  document.getElementById("f_caseType").value = k.caseType||"";
+  document.getElementById("f_caseYear").value = k.caseYear||"";
+  document.getElementById("f_filingDate").value = k.filingDate||"";
+  document.getElementById("f_court").value = k.courtId||"";
+  document.getElementById("f_bench").value = k.bench||"";
+  document.getElementById("f_division").value = k.division||"";
+  document.getElementById("f_district").value = k.district||"";
+  document.getElementById("f_thana").value = k.thana||"";
+  document.getElementById("f_client").value = k.clientId||"";
+  setSelectedClient(k.clientId||"");
+  newPlaintiffs = (k.plaintiffs||[]).slice();
+  newDefendants = (k.defendants||[]).slice();
+  newLawyerLinks = (k.lawyerLinks||[]).slice();
+  renderChipList(newPlaintiffs,"plaintiffChips",p=>p.name);
+  renderChipList(newDefendants,"defendantChips",p=>p.name);
+  renderChipList(newLawyerLinks,"lawyerChips",l=>`${lawyerById(l.lawyerId)?lawyerById(l.lawyerId).name:''} (${sideLabel(l.side)})`, l=>isIncompleteLawyer(lawyerById(l.lawyerId)));
+  document.getElementById("f_priority").value = k.priority||"normal";
+  document.getElementById("f_status").value = k.status||"active";
+  document.getElementById("f_tags").value = (k.tags||[]).join(", ");
+  document.getElementById("f_notes").value = k.notes||"";
+  document.getElementById("f_agreedFee").value = k.agreedFee||"";
+  document.getElementById("f_date").value = todayISO();
+  document.getElementById("f_orderNumber").value = "";
+  document.getElementById("f_shortOrder").value = "";
+  document.getElementById("f_detailOrder").value = "";
+  document.getElementById("f_nextDate").value = "";
+  document.getElementById("caseOverlay").classList.add("open");
+  // Note: editing a case does not create a new hearing — the "first hearing" fields are only used when adding a brand-new case.
+}
+
+/* ================= INIT ================= */
+document.getElementById("langToggle").addEventListener("click", ()=> setLang(LANG==="bn"?"en":"bn"));
+applyStaticI18n();
+refreshCourtTemplateDropdown();
+renderCourtBuilderExtra();
+refreshMasterDropdowns();
+renderCourtSettings();
+renderDashboard();
+
+/* ---- Cloud sync wiring ---- */
+document.getElementById("syncUrlInput").value = getSyncUrl();
+if(getSyncUrl()) setSyncStatus(T("সিঙ্ক প্রস্তুত"));
+document.getElementById("btnSaveSyncUrl").addEventListener("click", ()=>{
+  setSyncUrlStored(document.getElementById("syncUrlInput").value);
+  if(getSyncUrl()){ pushToCloud(); } else { setSyncStatus(T("সিঙ্ক বন্ধ আছে")); }
+});
+document.getElementById("btnSyncNow").addEventListener("click", ()=> pullFromCloud());
+if(getSyncUrl()) pullFromCloud(true);
+setInterval(()=>{ if(document.visibilityState==="visible" && getSyncUrl()) pullFromCloud(true); }, 25000);
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible" && getSyncUrl()) pullFromCloud(true); });
+
+/* ================= BACK BUTTON / BROWSER HISTORY SUPPORT =================
+   Previously the app had no history entries at all, so the phone/browser Back
+   button did nothing useful inside the app — the only way to "go back" was to
+   tap a different bottom-nav option and come back. This wires every view switch
+   and every modal open into the browser's history so Back closes the topmost
+   modal first, then steps back through the views actually visited. */
+(function(){
+  let navSuppressed = false; // true only while we are reacting to a popstate ourselves
+  const overlaySelector = ".overlay, .drawer-overlay";
+
+  const _switchView = switchView;
+  switchView = function(view){
+    _switchView(view);
+    if(!navSuppressed && !(history.state && history.state.view===view)) history.pushState({view:view}, "", "#"+view);
+  };
+
+  document.querySelectorAll(overlaySelector).forEach(ov=>{
+    let wasOpen = ov.classList.contains("open");
+    new MutationObserver(()=>{
+      const isOpen = ov.classList.contains("open");
+      if(isOpen && !wasOpen){
+        if(!navSuppressed) history.pushState({overlay:ov.id}, "", "#"+ov.id);
+      } else if(!isOpen && wasOpen){
+        // Closed via a Cancel/Save/× button rather than the Back button — pop the
+        // matching history entry too, so Back doesn't need an extra, "dead" press.
+        if(!navSuppressed && history.state && history.state.overlay===ov.id) history.back();
+      }
+      wasOpen = isOpen;
+    }).observe(ov, {attributes:true, attributeFilter:["class"]});
+  });
+
+  history.replaceState({view:"dashboard"}, "", "#dashboard");
+
+  window.addEventListener("popstate", (e)=>{
+    navSuppressed = true;
+    document.querySelectorAll(overlaySelector+".open").forEach(ov=>{
+      if(!(e.state && e.state.overlay===ov.id)) ov.classList.remove("open");
+    });
+    if(e.state && e.state.view){
+      _switchView(e.state.view);
+    } else if(!e.state || !e.state.overlay){
+      _switchView("dashboard");
+    }
+    navSuppressed = false;
+  });
+})();
+</script>
+</body>
+</html>
